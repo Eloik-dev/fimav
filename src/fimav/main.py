@@ -48,6 +48,12 @@ def parse_args(args):
     parser.add_argument(
         "--camera-index", type=int, default=0, help="Index of the camera to use"
     )
+    parser.add_argument(
+        "--camera-width", type=int, default=1920, help="Width of the camera to use"
+    )
+    parser.add_argument(
+        "--camera-height", type=int, default=1080, help="Height of the camera to use"
+    )
 
     return parser.parse_args(args)
 
@@ -111,6 +117,8 @@ def main(args):
     video_capture = VideoCapture(
         camera_index=args.camera_index,
         frame_queue=frame_queue,
+        camera_height=args.camera_height,
+        camera_width=args.camera_width,
     )
 
     if video_capture.start_capture():
