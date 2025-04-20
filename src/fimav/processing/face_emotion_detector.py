@@ -120,6 +120,8 @@ class FaceEmotionDetector:
         while not self._stop_emotion_thread.is_set():
             try:
                 resized_frame, bbox = self.emotion_queue.get_nowait()
+                if resized_frame is None or bbox is None:
+                    continue
                 emotion = self._classify_emotion(resized_frame, bbox)
                 self.current_emotion = emotion
             except queue.Full:
