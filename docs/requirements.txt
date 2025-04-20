@@ -6,5 +6,4 @@ opencv-python
 screeninfo
 pillow
 ncnn
-tkinter
 # sphinx_rtd_theme
