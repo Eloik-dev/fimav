@@ -14,7 +14,7 @@ class MainWindow(tk.Tk):
         self.detection_queue = detector.get_detection_queue()
         self.target_detections = []
         self.current_detections = []
-        self.lerp_alpha = 0.9
+        self.lerp_alpha = 0.5
 
         # Setup canvas for video
         self.width = width
@@ -35,7 +35,7 @@ class MainWindow(tk.Tk):
         self.photo = None
 
         # Start update loop
-        self.after(15, self.update_frame)  # ~66 FPS
+        self.after(2, self.update_frame)  # ~66 FPS
 
     def update_frame(self):
         # Get latest frame
@@ -46,7 +46,7 @@ class MainWindow(tk.Tk):
             except queue.Empty:
                 break
         if frame is None:
-            self.after(15, self.update_frame)
+            self.after(2, self.update_frame)
             return
 
         # Sync detection boxes
@@ -105,4 +105,4 @@ class MainWindow(tk.Tk):
             )
 
         # Schedule next frame
-        self.after(15, self.update_frame)
+        self.after(2, self.update_frame)
