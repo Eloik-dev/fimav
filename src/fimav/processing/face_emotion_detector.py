@@ -110,7 +110,7 @@ class FaceEmotionDetector:
                             print("Face detected:", scaled_bbox)
                         except queue.Full:
                             pass
-                    time.sleep(0.1)
+                    time.sleep(0.02)
             except queue.Empty:
                 pass
 
@@ -128,7 +128,7 @@ class FaceEmotionDetector:
                 pass
             except queue.Empty:
                 pass
-            time.sleep(0.2)
+            time.sleep(1)
 
     def get_current_emotion(self):
         return self.current_emotion
@@ -139,13 +139,13 @@ class FaceEmotionDetector:
         scale_y = self.height / self.face_size[1]
         scaled_boxes = []
         for x1, y1, x2, y2 in raw_boxes:
-            scaled_x1 = int(x1 * scale_x)
-            scaled_y1 = int(y1 * scale_y)
-            scaled_x2 = int(x2 * scale_x)
-            scaled_y2 = int(y2 * scale_y)
+            scaled_x1 = max(0, int(x1 * scale_x))
+            scaled_y1 = max(0, int(y1 * scale_y))
+            scaled_x2 = min(self.width, int(x2 * scale_x))
+            scaled_y2 = min(self.height, int(y2 * scale_y))
             scaled_boxes.append(
                 (scaled_x1, scaled_y1, scaled_x2 - scaled_x1, scaled_y2 - scaled_y1)
-            )  # Convert to (x, y, w, h)
+            )
         return scaled_boxes
 
     def _detect_faces(self, resized_image: np.ndarray):

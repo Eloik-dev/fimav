@@ -6,4 +6,6 @@ opencv-python
 screeninfo
 pillow
 ncnn
+mido
+paho-mqtt
 # sphinx_rtd_theme

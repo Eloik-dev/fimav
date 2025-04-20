@@ -6,6 +6,7 @@ from fimav import __version__
 from fimav.processing.video_capture import VideoCapture
 from fimav.processing.face_emotion_detector import FaceEmotionDetector
 from fimav.gui.main_window import MainWindow
+from fimav.mqtt.mqtt_manager import MqttManager
 
 __author__ = "Eloik-dev"
 __copyright__ = "Eloik-dev"
@@ -120,6 +121,7 @@ def main(args):
         camera_height=args.camera_height,
         camera_width=args.camera_width,
     )
+    #mqtt_manager = MqttManager()
 
     if video_capture.start_capture():
         detector = create_face_emotion_detection_thread(frame_queue, width, height)        
