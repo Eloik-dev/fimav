@@ -110,7 +110,7 @@ class FaceEmotionDetector:
                             print("Face detected:", scaled_bbox)
                         except queue.Full:
                             pass
-                    time.sleep(0.04)
+                    time.sleep(0.07)
             except queue.Empty:
                 pass
 

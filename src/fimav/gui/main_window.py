@@ -14,7 +14,7 @@ class MainWindow(tk.Tk):
         self.detection_queue = detector.get_detection_queue()
         self.target_detections = []
         self.current_detections = []
-        self.lerp_alpha = 0.5
+        self.lerp_alpha = 0.7
 
         # Setup canvas for video
         self.width = width
