@@ -35,7 +35,7 @@ class MainWindow(tk.Tk):
         self.photo = None
 
         # Start update loop
-        self.after(2, self.update_frame)  # ~66 FPS
+        self.after(33, self.update_frame)  # ~66 FPS
 
     def update_frame(self):
         # Get latest frame
@@ -46,7 +46,7 @@ class MainWindow(tk.Tk):
             except queue.Empty:
                 break
         if frame is None:
-            self.after(2, self.update_frame)
+            self.after(33, self.update_frame)  # Avoid unnecessary redraw if no frame
             return
 
         # Sync detection boxes
@@ -60,22 +60,19 @@ class MainWindow(tk.Tk):
         if new_targets:
             self.target_detections = new_targets
 
-        # Interpolate (lerp) boxes
-        while len(self.current_detections) < len(self.target_detections):
-            self.current_detections.append(
-                self.target_detections[len(self.current_detections)]
-            )
-        while len(self.current_detections) > len(self.target_detections):
-            self.current_detections.pop()
+        # Interpolate (lerp) boxes with reduced alpha for smoother transition
         for i, tgt in enumerate(self.target_detections):
-            cur = self.current_detections[i]
-            lerped = tuple(
-                cur_coord + self.lerp_alpha * (tgt_coord - cur_coord)
-                for cur_coord, tgt_coord in zip(cur, tgt)
-            )
-            self.current_detections[i] = lerped
+            if i >= len(self.current_detections):
+                self.current_detections.append(tgt)
+            else:
+                cur = self.current_detections[i]
+                lerped = tuple(
+                    cur_coord + self.lerp_alpha * (tgt_coord - cur_coord)
+                    for cur_coord, tgt_coord in zip(cur, tgt)
+                )
+                self.current_detections[i] = lerped
 
-        # First resize the frame to canvas dimensions
+        # Resize frame to canvas dimensions and convert to RGB
         frame = cv2.resize(frame, (self.width, self.height))
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -104,5 +101,5 @@ class MainWindow(tk.Tk):
                 text="Aucune émotion détectée", fg="red", font=(None, 24, "bold")
             )
 
-        # Schedule next frame
-        self.after(2, self.update_frame)
+        # Schedule next frame update with a reasonable delay
+        self.after(33, self.update_frame)  # ~30 FPS for smoother updates
