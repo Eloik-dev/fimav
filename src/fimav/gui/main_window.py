@@ -12,9 +12,7 @@ class MainWindow(tk.Tk):
         self.frame_queue = frame_queue
         self.detector = detector
         self.detection_queue = detector.get_detection_queue()
-        self.target_detections = []
         self.current_detections = []
-        self.lerp_alpha = 0.7
 
         # Setup canvas for video
         self.width = width
@@ -50,27 +48,13 @@ class MainWindow(tk.Tk):
             return
 
         # Sync detection boxes
-        new_targets = []
+        self.current_detections = []
         while not self.detection_queue.empty():
             try:
                 _, bbox = self.detection_queue.get_nowait()
-                new_targets.append(bbox)
+                self.current_detections.append(bbox)
             except queue.Empty:
                 break
-        if new_targets:
-            self.target_detections = new_targets
-
-        # Interpolate (lerp) boxes with reduced alpha for smoother transition
-        for i, tgt in enumerate(self.target_detections):
-            if i >= len(self.current_detections):
-                self.current_detections.append(tgt)
-            else:
-                cur = self.current_detections[i]
-                lerped = tuple(
-                    cur_coord + self.lerp_alpha * (tgt_coord - cur_coord)
-                    for cur_coord, tgt_coord in zip(cur, tgt)
-                )
-                self.current_detections[i] = lerped
 
         # Resize frame to canvas dimensions and convert to RGB
         frame = cv2.resize(frame, (self.width, self.height))
@@ -103,3 +87,4 @@ class MainWindow(tk.Tk):
 
         # Schedule next frame update with a reasonable delay
         self.after(33, self.update_frame)  # ~30 FPS for smoother updates
+
