@@ -2,6 +2,7 @@ import argparse
 import logging
 import sys
 import queue
+import threading
 from fimav import __version__
 from fimav.processing.video_capture import VideoCapture
 from fimav.processing.face_emotion_detector import FaceEmotionDetector
@@ -71,13 +72,13 @@ def setup_logging(loglevel):
     )
 
 
-def create_face_emotion_detection_thread(frame_queue, width, height):
+def create_face_emotion_detection_thread(video_capture, width, height):
     """Runs the Face Emotion Detection in a separate thread."""
     # Create the FaceEmotionDetector instance
     detector = FaceEmotionDetector(
         width,
         height,
-        frame_queue,
+        video_capture,
         "models/face/ultraface_12.param",
         "models/face/ultraface_12.bin",
         "models/emotion/emotion_ferplus_12.param",
@@ -89,18 +90,17 @@ def create_face_emotion_detection_thread(frame_queue, width, height):
     return detector
 
 
-def create_gui_thread(frame_queue, detector, width, height):
+def create_gui_thread(video_capture, detector, width, height):
     """
     Runs the Tkinter GUI in a separate daemon thread.
 
-    :param frame_queue: queue.Queue supplying OpenCV frames
     :param detector: your face/emotion detector with get_detection_queue() and get_current_emotion()
     :param width: window width
     :param height: window height
     :returns: the Thread object running the GUI
     """
     # Instantiate and run the Tkinter MainWindow
-    window = MainWindow(frame_queue, detector, width, height)
+    window = MainWindow(video_capture, detector, width, height)
     window.mainloop()
     print("GUI thread finished")
 
@@ -114,18 +114,16 @@ def main(args):
     height = args.height
     print(f"Initial display size: {width}x{height}")
 
-    frame_queue = queue.Queue(maxsize=1)
     video_capture = VideoCapture(
         camera_index=args.camera_index,
-        frame_queue=frame_queue,
         camera_height=args.camera_height,
         camera_width=args.camera_width,
     )
     #mqtt_manager = MqttManager()
 
     if video_capture.start_capture():
-        detector = create_face_emotion_detection_thread(frame_queue, width, height)        
-        create_gui_thread(frame_queue, detector, width, height)
+        detector = create_face_emotion_detection_thread(video_capture, width, height)        
+        create_gui_thread(video_capture, detector, width, height)
     else:
         _logger.error("Failed to start video capture.")
 

@@ -6,10 +6,10 @@ import queue
 
 
 class MainWindow(tk.Tk):
-    def __init__(self, frame_queue, detector, width, height):
+    def __init__(self, video_capture, detector, width, height):
         super().__init__()
         self.title("Face & Emotion Detection")
-        self.frame_queue = frame_queue
+        self.video_capture = video_capture
         self.detector = detector
         self.detection_queue = detector.get_detection_queue()
         self.current_detections = []
@@ -33,18 +33,14 @@ class MainWindow(tk.Tk):
         self.photo = None
 
         # Start update loop
-        self.after(33, self.update_frame)  # ~66 FPS
+        self.after(15, self.update_frame)  # ~66 FPS
 
     def update_frame(self):
         # Get latest frame
-        frame = None
-        while not self.frame_queue.empty():
-            try:
-                frame = self.frame_queue.get_nowait()
-            except queue.Empty:
-                break
+        frame = self.video_capture.get_latest_frame()
+        
         if frame is None:
-            self.after(33, self.update_frame)  # Avoid unnecessary redraw if no frame
+            self.after(15, self.update_frame)  # Avoid unnecessary redraw if no frame
             return
 
         # Sync detection boxes
@@ -86,5 +82,5 @@ class MainWindow(tk.Tk):
             )
 
         # Schedule next frame update with a reasonable delay
-        self.after(33, self.update_frame)  # ~30 FPS for smoother updates
+        self.after(15, self.update_frame)  # ~30 FPS for smoother updates
 

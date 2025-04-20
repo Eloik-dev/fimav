@@ -7,7 +7,6 @@ class VideoCapture:
     def __init__(
         self,
         camera_index=0,
-        frame_queue=None,
         camera_width=1920,
         camera_height=1080,
     ):
@@ -16,19 +15,20 @@ class VideoCapture:
 
         Args:
             camera_index (int): Index of the camera to use.
-            frame_queue (queue.Queue, optional): Queue to store captured frames.
-                If None, a new queue is created.
             capture_width (int, optional): Width of the captured frames.
             capture_height (int, optional): Height of the captured frames.
             buffer_size (int): Maximum number of frames to buffer.
         """
         self.camera_index = camera_index
-        self.frame_queue = frame_queue
         self.camera_width = camera_width
         self.camera_height = camera_height
         self.cap = None
         self.running = False
         self.capture_thread = None
+        
+        self.latest_frame = None
+        self.lock = threading.Lock()
+
 
     def start_capture(self):
         """
@@ -78,15 +78,10 @@ class VideoCapture:
                 print("VideoCapture: Error reading frame. Stopping capture.")
                 self.running = False
                 break
+    
+            with self.lock:
+                self.latest_frame = frame.copy()
 
-            # Always drop stale frames and keep only the latest
-            if self.frame_queue.full():
-                try:
-                    self.frame_queue.get_nowait()  # Drop one
-                except queue.Empty:
-                    pass
-
-            try:
-                self.frame_queue.put_nowait(frame)
-            except queue.Full:
-                pass  # Shouldn't happen due to pre-drop, but just in case
+    def get_latest_frame(self):
+        with self.lock:
+            return self.latest_frame.copy() if self.latest_frame is not None else None

@@ -11,7 +11,7 @@ class FaceEmotionDetector:
         self,
         width,
         height,
-        frame_queue=None,
+        video_capture,
         face_param="./models/face/ultraface_12.param",  # Default paths
         face_bin="./models/face/ultraface_12.bin",
         emo_param="./models/emotion/emotion_ferplus_12.param",
@@ -20,7 +20,7 @@ class FaceEmotionDetector:
         emo_size=(64, 64),
     ):
         # Frame I/O
-        self.frame_queue = frame_queue
+        self.video_capture = video_capture
         self.detection_queue = queue.Queue(maxsize=1)
         self.emotion_queue = queue.Queue(maxsize=1)
         self.current_emotion = None
@@ -96,7 +96,7 @@ class FaceEmotionDetector:
         print("Face detection thread started")
         while not self._stop_face_thread.is_set():
             try:
-                frame = self.frame_queue.get_nowait()
+                frame = self.video_capture.get_latest_frame()
                 if frame is not None:
                     image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     resized_image = cv2.resize(image_rgb, self.face_size)
@@ -110,7 +110,7 @@ class FaceEmotionDetector:
                             print("Face detected:", scaled_bbox)
                         except queue.Full:
                             pass
-                    time.sleep(0.04)
+                    time.sleep(0.01)
             except queue.Empty:
                 pass
 
@@ -128,7 +128,7 @@ class FaceEmotionDetector:
                 pass
             except queue.Empty:
                 pass
-            time.sleep(2)
+            time.sleep(0.5)
 
     def get_current_emotion(self):
         return self.current_emotion
