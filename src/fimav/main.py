@@ -8,7 +8,6 @@ from fimav import __version__
 from fimav.processing.video_capture import VideoCapture
 from fimav.processing.face_emotion_detector import FaceEmotionDetector
 from fimav.gui.main_window import MainWindow
-from PyQt6.QtWidgets import QApplication
 
 __author__ = "Eloik-dev"
 __copyright__ = "Eloik-dev"
@@ -90,12 +89,20 @@ def create_face_emotion_detection_thread(frame_queue, width, height):
 
 
 def create_gui_thread(frame_queue, detector, width, height):
-    """Runs the Tkinter GUI in a separate thread."""
-    app = QApplication(sys.argv)
+    """
+    Runs the Tkinter GUI in a separate daemon thread.
+
+    :param frame_queue: queue.Queue supplying OpenCV frames
+    :param detector: your face/emotion detector with get_detection_queue() and get_current_emotion()
+    :param width: window width
+    :param height: window height
+    :returns: the Thread object running the GUI
+    """
+    # Instantiate and run the Tkinter MainWindow
     window = MainWindow(frame_queue, detector, width, height)
-    window.show()
+    window.mainloop()
     print("GUI thread finished")
-    sys.exit(app.exec())
+
 
 
 def main(args):
