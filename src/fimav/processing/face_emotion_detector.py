@@ -21,7 +21,7 @@ class FaceEmotionDetector:
     ):
         # Frame I/O
         self.video_capture = video_capture
-        self.detection_queue = queue.Queue(maxsize=1)
+        self.latest_detection = []
         self.emotion_queue = queue.Queue(maxsize=1)
         self.current_emotion = None
         self.last_bbox = None
@@ -89,9 +89,6 @@ class FaceEmotionDetector:
             self.emotion_thread.join()
         cv2.destroyAllWindows()  # Destroy any OpenCV windows
 
-    def get_detection_queue(self):
-        return self.detection_queue
-
     def _face_processing_loop(self):
         print("Face detection thread started")
         while not self._stop_face_thread.is_set():
@@ -102,10 +99,10 @@ class FaceEmotionDetector:
                     resized_image = cv2.resize(image_rgb, self.face_size)
                     raw_bboxes = self._detect_faces(resized_image)
                     scaled_bboxes = self._scale_boxes(raw_bboxes)
-
+                    self.latest_detection = scaled_bboxes
+                    
                     for raw_bbox, scaled_bbox in zip(raw_bboxes, scaled_bboxes):
                         try:
-                            self.detection_queue.put_nowait((frame, scaled_bbox))
                             self.emotion_queue.put_nowait((resized_image, raw_bbox))
                             print("Face detected:", scaled_bbox)
                         except queue.Full:
@@ -224,3 +221,7 @@ class FaceEmotionDetector:
 
         final_boxes = [boxes_abs[i].astype(int) for i in indices]
         return final_boxes
+
+    def get_latest_detection(self):
+        return self.latest_detection
+

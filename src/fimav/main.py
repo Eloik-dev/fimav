@@ -94,7 +94,6 @@ def create_gui_thread(video_capture, detector, width, height):
     """
     Runs the Tkinter GUI in a separate daemon thread.
 
-    :param detector: your face/emotion detector with get_detection_queue() and get_current_emotion()
     :param width: window width
     :param height: window height
     :returns: the Thread object running the GUI
