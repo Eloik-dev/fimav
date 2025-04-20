@@ -128,7 +128,7 @@ class FaceEmotionDetector:
                 pass
             except queue.Empty:
                 pass
-            time.sleep(1)
+            time.sleep(0.2)
 
     def get_current_emotion(self):
         return self.current_emotion
