@@ -101,12 +101,12 @@ class FaceEmotionDetector:
                     scaled_bboxes = self._scale_boxes(raw_bboxes)
                     self.latest_detection = scaled_bboxes
                     
-                    for raw_bbox, scaled_bbox in zip(raw_bboxes, scaled_bboxes):
+                    for raw_bbox in raw_bboxes:
                         try:
                             self.emotion_queue.put_nowait((resized_image, raw_bbox))
                         except queue.Full:
                             pass
-                    time.sleep(0.1)
+                    time.sleep(0.05)
             except queue.Empty:
                 pass
 

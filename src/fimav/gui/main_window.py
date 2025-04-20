@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import Canvas, Label
 from PIL import Image, ImageTk
 import cv2
-import queue
 
 
 class MainWindow(tk.Tk):
@@ -35,13 +34,13 @@ class MainWindow(tk.Tk):
         self.lerp_speed = 0.7
 
         # Start update loop
-        self.after(15, self.update_frame)
+        self.after(33, self.update_frame)
 
     def update_frame(self):
         frame = self.video_capture.get_latest_frame()
 
         if frame is None:
-            self.after(15, self.update_frame)
+            self.after(33, self.update_frame)
             return
 
         self.current_detections = self.detector.get_latest_detection()
@@ -90,4 +89,4 @@ class MainWindow(tk.Tk):
                 text="Aucune émotion détectée", fg="red", font=(None, 24, "bold")
             )
 
-        self.after(15, self.update_frame)
+        self.after(33, self.update_frame)
