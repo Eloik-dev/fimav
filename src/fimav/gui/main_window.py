@@ -32,7 +32,7 @@ class MainWindow(tk.Tk):
 
         # Previous box positions for lerping
         self.prev_rects = {}
-        self.lerp_speed = 0.5
+        self.lerp_speed = 0.7
 
         # Start update loop
         self.after(15, self.update_frame)
