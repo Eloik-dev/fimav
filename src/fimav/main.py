@@ -2,8 +2,6 @@ import argparse
 import logging
 import sys
 import queue
-import threading
-from screeninfo import get_monitors
 from fimav import __version__
 from fimav.processing.video_capture import VideoCapture
 from fimav.processing.face_emotion_detector import FaceEmotionDetector
@@ -43,9 +41,9 @@ def parse_args(args):
         action="store_const",
         const=logging.DEBUG,
     )
-    parser.add_argument("--width", type=int, help="Initial display width")
+    parser.add_argument("--width", type=int, default=1920, help="Initial display width")
     parser.add_argument(
-        "--height", type=int, help="Initial display height"
+        "--height", type=int, default=1080, help="Initial display height"
     )
 
     return parser.parse_args(args)
@@ -61,13 +59,6 @@ def setup_logging(loglevel):
     logging.basicConfig(
         level=loglevel, stream=sys.stdout, format=logformat, datefmt="%Y-%m-%d %H:%M:%S"
     )
-
-
-def get_default_display_size():
-    for m in get_monitors():
-        if m.is_primary:
-            return m.width, m.height
-    return 1920, 1080
 
 
 def create_face_emotion_detection_thread(frame_queue, width, height):
@@ -109,9 +100,8 @@ def main(args):
     args = parse_args(args)
     setup_logging(args.loglevel)
 
-    default_width, default_height = get_default_display_size()
-    width = args.width if hasattr(args, "width") and args.width else default_width
-    height = args.height if hasattr(args, "height") and args.height else default_height
+    width = args.width
+    height = args.height
     print(f"Initial display size: {width}x{height}")
 
     frame_queue = queue.Queue(maxsize=1)
