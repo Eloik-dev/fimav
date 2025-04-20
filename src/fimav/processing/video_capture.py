@@ -1,7 +1,6 @@
 import cv2
 import threading
 import queue
-import time
 
 
 class VideoCapture:
@@ -35,7 +34,7 @@ class VideoCapture:
         """
         Starts the video capture process in a separate thread.
         """
-        self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_DSHOW)
+        self.cap = cv2.VideoCapture(self.camera_index)
         
         if not self.cap.isOpened():
             print(f"Error: Could not open camera {self.camera_index}")
