@@ -32,7 +32,7 @@ class VideoCapture:
         """
         Starts the video capture process in a separate thread.
         """
-        self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_V4L2)
+        self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_DSHOW)
 
         if not self.cap.isOpened():
             print(f"Error: Could not open camera {self.camera_index}")
