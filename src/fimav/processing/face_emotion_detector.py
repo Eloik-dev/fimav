@@ -96,7 +96,7 @@ class FaceEmotionDetector:
                     self.latest_detection = raw_bboxes
             except queue.Empty:
                 pass
-            time.sleep(0.02)
+            time.sleep(0.05)
 
     def _emotion_processing_loop(self):
         print("Emotion classification thread started")
