@@ -106,7 +106,7 @@ class FaceEmotionDetector:
                             self.emotion_queue.put_nowait((resized_image, raw_bbox))
                         except queue.Full:
                             pass
-                    time.sleep(0.01)
+                    time.sleep(0.02)
             except queue.Empty:
                 pass
 
