@@ -28,7 +28,7 @@ class MainWindow(tk.Tk):
         self.photo = None
         self.prev_boxes = []  # <-- store previous box positions
 
-        self.smooth_factor = 0.9
+        self.smooth_factor = 0.8
 
         self.after(15, self.update_frame)
 

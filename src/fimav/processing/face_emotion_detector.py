@@ -1,6 +1,5 @@
 import cv2
 import threading
-import queue
 import numpy as np
 import ncnn
 import time
@@ -12,44 +11,41 @@ class FaceEmotionDetector:
         width,
         height,
         video_capture,
-        face_param="./models/face/ultraface_12.param",  # Default paths
+        face_param="./models/face/ultraface_12.param",
         face_bin="./models/face/ultraface_12.bin",
         emo_param="./models/emotion/emotion_ferplus_12.param",
         emo_bin="./models/emotion/emotion_ferplus_12.bin",
         face_size=(320, 240),
         emo_size=(64, 64),
     ):
-        # Frame I/O
-        self.video_capture = video_capture
-        self.latest_detection = []
-        self.emotion_queue = queue.Queue(maxsize=1)
-        self.current_emotion = None
-        self.last_bbox = None
-
-        # 1) Load face detector
-        self.face_net = ncnn.Net()
-        self.face_net.load_param(face_param)
-        self.face_net.load_model(face_bin)
-
-        # 2) Load emotion classifier
-        self.emo_net = ncnn.Net()
-        self.emo_net.load_param(emo_param)
-        self.emo_net.load_model(emo_bin)
-
-        # Preprocess sizes
-        self.face_size = face_size
-        self.emo_size = emo_size
         self.width = width
         self.height = height
+        self.video_capture = video_capture
+        self.face_size = face_size
+        self.emo_size = emo_size
 
-        # Thread control
+        # Shared state
+        self.latest_detection = []
+        self.current_emotion = None
+        self.shared_resized_frame = None
+
+        # Threads
         self.running = False
         self.face_thread = None
         self.emotion_thread = None
         self._stop_face_thread = threading.Event()
         self._stop_emotion_thread = threading.Event()
 
-        # Emotion labels mapping
+        # Load models
+        self.face_net = ncnn.Net()
+        self.face_net.load_param(face_param)
+        self.face_net.load_model(face_bin)
+
+        self.emo_net = ncnn.Net()
+        self.emo_net.load_param(emo_param)
+        self.emo_net.load_model(emo_bin)
+
+        # Emotion info
         self.emotion_labels = [
             "neutre",
             "heureux",
@@ -62,97 +58,79 @@ class FaceEmotionDetector:
         ]
 
     def start_processing(self):
-        """Start the face and emotion detection thread."""
         if self.running:
             return
-
         self.running = True
+        self._stop_face_thread.clear()
+        self._stop_emotion_thread.clear()
 
-        self.face_thread = threading.Thread(
-            target=self._face_processing_loop, daemon=True
-        )
+        self.face_thread = threading.Thread(target=self._face_processing_loop)
+        self.emotion_thread = threading.Thread(target=self._emotion_processing_loop, daemon=True)
+
         self.face_thread.start()
-
-        self.emotion_thread = threading.Thread(
-            target=self._emotion_processing_loop, daemon=True
-        )
         self.emotion_thread.start()
 
     def stop_processing(self):
-        """Stop the face and emotion detection thread."""
         self.running = False
-        self._stop_face_thread.set()  # Signal the face thread to stop
-        self._stop_emotion_thread.set()  # Signal the face thread to stop
+        self._stop_face_thread.set()
+        self._stop_emotion_thread.set()
         if self.face_thread and self.face_thread.is_alive():
             self.face_thread.join()
         if self.emotion_thread and self.emotion_thread.is_alive():
             self.emotion_thread.join()
-        cv2.destroyAllWindows()  # Destroy any OpenCV windows
+        cv2.destroyAllWindows()
 
     def _face_processing_loop(self):
         print("Face detection thread started")
         while not self._stop_face_thread.is_set():
-            try:
-                frame = self.video_capture.get_latest_frame()
-                if frame is not None:
-                    image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    resized_image = cv2.resize(image_rgb, self.face_size)
-                    raw_bboxes = self._detect_faces(resized_image)
-                    self.latest_detection = raw_bboxes
-            except queue.Empty:
-                pass
-            time.sleep(0.02)
+            frame = self.video_capture.get_latest_frame()
+            if frame is not None:
+                image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                resized_image = cv2.resize(image_rgb, self.face_size)
+
+                self.shared_resized_frame = resized_image
+                self.latest_detection = self._detect_faces()
+
+            time.sleep(0.01)
 
     def _emotion_processing_loop(self):
         print("Emotion classification thread started")
         while not self._stop_emotion_thread.is_set():
-            try:
-                frame = self.video_capture.get_latest_frame()
-                if frame is not None:
-                    image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    resized_image = cv2.resize(image_rgb, self.face_size)
-                    
-                    self.current_emotion = self._classify_emotion(resized_image)
-            except queue.Empty:
-                pass
-            time.sleep(0.4)
+            frame = self.shared_resized_frame
+            if frame is not None:
+                self.current_emotion = self._classify_emotion(frame)
+            time.sleep(0.1)
 
-    def _detect_faces(self, resized_image: np.ndarray):
+    def _detect_faces(self):
+        if self.shared_resized_frame is None:
+            return None
+
         mat = ncnn.Mat.from_pixels(
-            resized_image, ncnn.Mat.PixelType.PIXEL_RGB, *self.face_size
+            self.shared_resized_frame, ncnn.Mat.PixelType.PIXEL_RGB, *self.face_size
         )
         mat.substract_mean_normalize([127, 127, 127], [1.0 / 128] * 3)
 
-        face_ex = self.face_net.create_extractor()
-        face_ex.input("in0", mat)
+        ex = self.face_net.create_extractor()
+        ex.input("in0", mat)
+        _, out0 = ex.extract("out0")
+        _, out1 = ex.extract("out1")
 
-        _, out0 = face_ex.extract("out0")
-        _, out1 = face_ex.extract("out1")
-
-        boxes = self.decode_boxes(out0, out1, score_threshold=0.5, iou_threshold=0.2)
-        return boxes
-
-    def softmax(self, x):
-        """Compute softmax values for each sets of scores in x."""
-        e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum(axis=0)
+        return self.decode_boxes(out0, out1, score_threshold=0.5, iou_threshold=0.2)
 
     def _classify_emotion(self, frame: np.ndarray):
-        if len(self.latest_detection) == 0:
+        if self.latest_detection is None:
             return
         
         x, y, x2, y2 = self.latest_detection[0]
-        print(f"Emotion detected: {x}, {y}, {x2}, {y2}")
         w = x2 - x
         h = y2 - y
         face = frame[y : y + h, x : x + w]
-        
 
         face_bgr = cv2.cvtColor(face, cv2.COLOR_RGB2BGR)
 
         gray = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2GRAY)
         resized = cv2.resize(gray, self.emo_size)
-        
+
         mat = ncnn.Mat.from_pixels(
             resized, ncnn.Mat.PixelType.PIXEL_GRAY, *self.emo_size
         )
@@ -164,7 +142,12 @@ class FaceEmotionDetector:
         scores = np.array(out)
         probs = self.softmax(scores)
         idx = int(np.argmax(probs))
+        print(f"Emotion: {self.emotion_labels[idx]}")
         return self.emotion_labels[idx]
+    
+    def softmax(self, x):
+        e_x = np.exp(x - np.max(x))
+        return e_x / e_x.sum(axis=0)
 
     def decode_boxes(self, scores, boxes, score_threshold=0.7, iou_threshold=0.2):
         """

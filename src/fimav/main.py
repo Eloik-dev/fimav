@@ -102,6 +102,7 @@ def create_gui_thread(video_capture, detector, face_size, width, height):
     # Instantiate and run the Tkinter MainWindow
     window = MainWindow(video_capture, detector, face_size, width, height)
     window.mainloop()
+    detector.stop_processing()
     print("GUI thread finished")
 
 
