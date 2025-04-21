@@ -99,7 +99,7 @@ class FaceEmotionDetector:
             frame = self.shared_resized_frame
             if frame is not None:
                 self.current_emotion = self._classify_emotion(frame)
-            time.sleep(0.1)
+            time.sleep(0.4)
 
     def _detect_faces(self):
         if self.shared_resized_frame is None:
