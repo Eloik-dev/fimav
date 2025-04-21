@@ -142,7 +142,6 @@ class FaceEmotionDetector:
         scores = np.array(out)
         probs = self.softmax(scores)
         idx = int(np.argmax(probs))
-        print(f"Emotion: {self.emotion_labels[idx]}")
         return self.emotion_labels[idx]
     
     def softmax(self, x):
