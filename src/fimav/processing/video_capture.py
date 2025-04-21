@@ -27,14 +27,13 @@ class VideoCapture:
         self.capture_thread = None
         
         self.latest_frame = None
-        self.lock = threading.Lock()
 
 
     def start_capture(self):
         """
         Starts the video capture process in a separate thread.
         """
-        self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_DSHOW)
+        self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_V4L2)
         
         if not self.cap.isOpened():
             print(f"Error: Could not open camera {self.camera_index}")
@@ -44,18 +43,14 @@ class VideoCapture:
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.camera_width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.camera_height)
+        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         self.cap.set(cv2.CAP_PROP_FPS, 30)
 
-        actual_width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        actual_height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        print(f"Actual camera resolution: {actual_width} x {actual_height}")
-        
-        fps = self.cap.get(cv2.CAP_PROP_FPS)
-        print(f"Actual FPS: {fps}")
+        print(f"Actual resolution: {self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)} x {self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)}")
+        print(f"Actual FPS: {self.cap.get(cv2.CAP_PROP_FPS)}")
 
         self.running = True
-        self.capture_thread = threading.Thread(target=self._capture_loop)
-        self.capture_thread.daemon = True  # Allow the main program to exit
+        self.capture_thread = threading.Thread(target=self._capture_loop, daemon=True)
         self.capture_thread.start()
         return True
 
@@ -79,9 +74,7 @@ class VideoCapture:
                 self.running = False
                 break
     
-            with self.lock:
-                self.latest_frame = frame.copy()
+            self.latest_frame = frame
 
     def get_latest_frame(self):
-        with self.lock:
-            return self.latest_frame.copy() if self.latest_frame is not None else None
+        return self.latest_frame

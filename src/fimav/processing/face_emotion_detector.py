@@ -51,20 +51,20 @@ class FaceEmotionDetector:
 
         # Emotion labels mapping
         self.emotion_labels = [
-            "neutral",
-            "happiness",
-            "surprise",
-            "sadness",
-            "anger",
-            "disgust",
-            "fear",
-            "contempt",
+            "neutre",
+            "heureux",
+            "surpris",
+            "triste",
+            "fâché",
+            "dégouté",
+            "apeuré",
+            "méprisant",
         ]
 
     def start_processing(self):
         """Start the face and emotion detection thread."""
         if self.running:
-            return  # Already running
+            return
 
         self.running = True
 
@@ -100,16 +100,15 @@ class FaceEmotionDetector:
                     raw_bboxes = self._detect_faces(resized_image)
                     scaled_bboxes = self._scale_boxes(raw_bboxes)
                     self.latest_detection = scaled_bboxes
-                    
+
                     for raw_bbox in raw_bboxes:
                         try:
                             self.emotion_queue.put_nowait((resized_image, raw_bbox))
                         except queue.Full:
                             pass
-                    time.sleep(0.00001)
+                    time.sleep(0.01)
             except queue.Empty:
                 pass
-
 
     def _emotion_processing_loop(self):
         print("Emotion classification thread started")
@@ -225,4 +224,3 @@ class FaceEmotionDetector:
 
     def get_latest_detection(self):
         return self.latest_detection
-
