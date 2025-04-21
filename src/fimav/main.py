@@ -72,7 +72,7 @@ def setup_logging(loglevel):
     )
 
 
-def create_face_emotion_detection_thread(video_capture, width, height):
+def create_face_emotion_detection_thread(video_capture, face_size, width, height):
     """Runs the Face Emotion Detection in a separate thread."""
     # Create the FaceEmotionDetector instance
     detector = FaceEmotionDetector(
@@ -83,6 +83,7 @@ def create_face_emotion_detection_thread(video_capture, width, height):
         "models/face/ultraface_12.bin",
         "models/emotion/emotion_ferplus_12.param",
         "models/emotion/emotion_ferplus_12.bin",
+        face_size
     )
     detector.start_processing()
     print("Face Emotion Detection started in a separate thread")
@@ -90,7 +91,7 @@ def create_face_emotion_detection_thread(video_capture, width, height):
     return detector
 
 
-def create_gui_thread(video_capture, detector, width, height):
+def create_gui_thread(video_capture, detector, face_size, width, height):
     """
     Runs the Tkinter GUI in a separate daemon thread.
 
@@ -99,7 +100,7 @@ def create_gui_thread(video_capture, detector, width, height):
     :returns: the Thread object running the GUI
     """
     # Instantiate and run the Tkinter MainWindow
-    window = MainWindow(video_capture, detector, width, height)
+    window = MainWindow(video_capture, detector, face_size, width, height)
     window.mainloop()
     print("GUI thread finished")
 
@@ -112,6 +113,8 @@ def main(args):
     width = args.width
     height = args.height
     print(f"Initial display size: {width}x{height}")
+    
+    face_size = (320, 240)
 
     video_capture = VideoCapture(
         camera_index=args.camera_index,
@@ -121,8 +124,8 @@ def main(args):
     #mqtt_manager = MqttManager()
 
     if video_capture.start_capture():
-        detector = create_face_emotion_detection_thread(video_capture, width, height)        
-        create_gui_thread(video_capture, detector, width, height)
+        detector = create_face_emotion_detection_thread(video_capture, face_size, width, height)        
+        create_gui_thread(video_capture, detector, face_size, width, height)
     else:
         _logger.error("Failed to start video capture.")
 

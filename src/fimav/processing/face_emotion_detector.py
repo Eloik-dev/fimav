@@ -98,52 +98,24 @@ class FaceEmotionDetector:
                     image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     resized_image = cv2.resize(image_rgb, self.face_size)
                     raw_bboxes = self._detect_faces(resized_image)
-                    scaled_bboxes = self._scale_boxes(raw_bboxes)
-                    self.latest_detection = scaled_bboxes
-
-                    for raw_bbox in raw_bboxes:
-                        try:
-                            self.emotion_queue.put_nowait((resized_image, raw_bbox))
-                        except queue.Full:
-                            pass
-                    time.sleep(0.02)
+                    self.latest_detection = raw_bboxes
             except queue.Empty:
                 pass
+            time.sleep(0.02)
 
     def _emotion_processing_loop(self):
         print("Emotion classification thread started")
         while not self._stop_emotion_thread.is_set():
             try:
-                resized_frame, bbox = self.emotion_queue.get_nowait()
-                if resized_frame is None or bbox is None:
-                    continue
-                emotion = self._classify_emotion(resized_frame, bbox)
-                self.current_emotion = emotion
-            except queue.Full:
-                pass
+                frame = self.video_capture.get_latest_frame()
+                if frame is not None:
+                    image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    resized_image = cv2.resize(image_rgb, self.face_size)
+                    
+                    self.current_emotion = self._classify_emotion(resized_image)
             except queue.Empty:
                 pass
-            except:
-                pass
             time.sleep(0.4)
-
-    def get_current_emotion(self):
-        return self.current_emotion
-
-    def _scale_boxes(self, raw_boxes):
-        """Scales the raw bounding box coordinates to the output display size."""
-        scale_x = self.width / self.face_size[0]
-        scale_y = self.height / self.face_size[1]
-        scaled_boxes = []
-        for x1, y1, x2, y2 in raw_boxes:
-            scaled_x1 = max(0, int(x1 * scale_x))
-            scaled_y1 = max(0, int(y1 * scale_y))
-            scaled_x2 = min(self.width, int(x2 * scale_x))
-            scaled_y2 = min(self.height, int(y2 * scale_y))
-            scaled_boxes.append(
-                (scaled_x1, scaled_y1, scaled_x2 - scaled_x1, scaled_y2 - scaled_y1)
-            )
-        return scaled_boxes
 
     def _detect_faces(self, resized_image: np.ndarray):
         mat = ncnn.Mat.from_pixels(
@@ -165,17 +137,22 @@ class FaceEmotionDetector:
         e_x = np.exp(x - np.max(x))
         return e_x / e_x.sum(axis=0)
 
-    def _classify_emotion(self, frame: np.ndarray, bbox: tuple):
-        x, y, x2, y2 = bbox
+    def _classify_emotion(self, frame: np.ndarray):
+        if len(self.latest_detection) == 0:
+            return
+        
+        x, y, x2, y2 = self.latest_detection[0]
+        print(f"Emotion detected: {x}, {y}, {x2}, {y2}")
         w = x2 - x
         h = y2 - y
         face = frame[y : y + h, x : x + w]
+        
 
         face_bgr = cv2.cvtColor(face, cv2.COLOR_RGB2BGR)
 
         gray = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2GRAY)
         resized = cv2.resize(gray, self.emo_size)
-
+        
         mat = ncnn.Mat.from_pixels(
             resized, ncnn.Mat.PixelType.PIXEL_GRAY, *self.emo_size
         )
@@ -224,3 +201,6 @@ class FaceEmotionDetector:
 
     def get_latest_detection(self):
         return self.latest_detection
+
+    def get_current_emotion(self):
+        return self.current_emotion

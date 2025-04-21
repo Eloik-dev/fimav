@@ -5,11 +5,12 @@ import cv2
 
 
 class MainWindow(tk.Tk):
-    def __init__(self, video_capture, detector, width, height):
+    def __init__(self, video_capture, detector, face_size, width, height):
         super().__init__()
         self.title("Face & Emotion Detection")
         self.video_capture = video_capture
         self.detector = detector
+        self.face_size = face_size
 
         self.width = width
         self.height = height
@@ -27,7 +28,7 @@ class MainWindow(tk.Tk):
         self.photo = None
         self.prev_boxes = []  # <-- store previous box positions
 
-        self.smooth_factor = 0.7
+        self.smooth_factor = 0.9
 
         self.after(15, self.update_frame)
 
@@ -39,6 +40,21 @@ class MainWindow(tk.Tk):
             int(box1[2] + (box2[2] - box1[2]) * t),
             int(box1[3] + (box2[3] - box1[3]) * t),
         ]
+        
+    def _scale_boxes(self, raw_boxes):
+        """Scales the raw bounding box coordinates to the output display size."""
+        scale_x = self.width / self.face_size[0]
+        scale_y = self.height / self.face_size[1]
+        scaled_boxes = []
+        for x1, y1, x2, y2 in raw_boxes:
+            scaled_x1 = max(0, int(x1 * scale_x))
+            scaled_y1 = max(0, int(y1 * scale_y))
+            scaled_x2 = min(self.width, int(x2 * scale_x))
+            scaled_y2 = min(self.height, int(y2 * scale_y))
+            scaled_boxes.append(
+                (scaled_x1, scaled_y1, scaled_x2 - scaled_x1, scaled_y2 - scaled_y1)
+            )
+        return scaled_boxes
 
     def update_frame(self):
         frame = self.video_capture.get_latest_frame()
@@ -47,12 +63,13 @@ class MainWindow(tk.Tk):
             return
 
         raw_boxes = self.detector.get_latest_detection()
+        scaled_boxes = self._scale_boxes(raw_boxes)
         frame = cv2.resize(frame, (self.width, self.height))
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         # Interpolate current boxes
         interpolated_boxes = []
-        for i, new_box in enumerate(raw_boxes):
+        for i, new_box in enumerate(scaled_boxes):
             if i < len(self.prev_boxes):
                 prev_box = self.prev_boxes[i]
                 interpolated = self.lerp_box(prev_box, new_box, self.smooth_factor)
