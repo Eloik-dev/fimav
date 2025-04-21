@@ -34,14 +34,14 @@ class VideoCapture:
         """
         Starts the video capture process in a separate thread.
         """
-        self.cap = cv2.VideoCapture("/dev/video0", cv2.CAP_V4L2)
+        self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_V4L2)
         
         if not self.cap.isOpened():
             print(f"Error: Could not open camera {self.camera_index}")
             self.running = False
             return False
 
-        self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'H264'))
+        self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.camera_width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.camera_height)
         self.cap.set(cv2.CAP_PROP_FPS, 30)
