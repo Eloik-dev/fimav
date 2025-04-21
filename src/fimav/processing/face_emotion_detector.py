@@ -73,11 +73,6 @@ class FaceEmotionDetector:
         )
         self.face_thread.start()
 
-        self.emotion_thread = threading.Thread(
-            target=self._emotion_processing_loop, daemon=True
-        )
-        self.emotion_thread.start()
-
     def stop_processing(self):
         """Stop the face and emotion detection thread."""
         self.running = False
@@ -111,7 +106,7 @@ class FaceEmotionDetector:
                 if frame is not None:
                     image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     resized_image = cv2.resize(image_rgb, self.face_size)
-                    
+
                     self.current_emotion = self._classify_emotion(resized_image)
             except queue.Empty:
                 pass
@@ -140,19 +135,18 @@ class FaceEmotionDetector:
     def _classify_emotion(self, frame: np.ndarray):
         if len(self.latest_detection) == 0:
             return
-        
+
         x, y, x2, y2 = self.latest_detection[0]
         print(f"Emotion detected: {x}, {y}, {x2}, {y2}")
         w = x2 - x
         h = y2 - y
         face = frame[y : y + h, x : x + w]
-        
 
         face_bgr = cv2.cvtColor(face, cv2.COLOR_RGB2BGR)
 
         gray = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2GRAY)
         resized = cv2.resize(gray, self.emo_size)
-        
+
         mat = ncnn.Mat.from_pixels(
             resized, ncnn.Mat.PixelType.PIXEL_GRAY, *self.emo_size
         )
