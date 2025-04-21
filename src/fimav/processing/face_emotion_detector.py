@@ -106,7 +106,7 @@ class FaceEmotionDetector:
                             self.emotion_queue.put_nowait((resized_image, raw_bbox))
                         except queue.Full:
                             pass
-                    time.sleep(0.05)
+                    time.sleep(0.00001)
             except queue.Empty:
                 pass
 
@@ -158,7 +158,7 @@ class FaceEmotionDetector:
         _, out0 = face_ex.extract("out0")
         _, out1 = face_ex.extract("out1")
 
-        boxes = self.decode_boxes(out0, out1, score_threshold=0.8)
+        boxes = self.decode_boxes(out0, out1, score_threshold=0.5, iou_threshold=0.2)
         return boxes
 
     def softmax(self, x):
@@ -190,7 +190,7 @@ class FaceEmotionDetector:
         idx = int(np.argmax(probs))
         return self.emotion_labels[idx]
 
-    def decode_boxes(self, scores, boxes, score_threshold=0.7, iou_threshold=0.3):
+    def decode_boxes(self, scores, boxes, score_threshold=0.7, iou_threshold=0.2):
         """
         Convert raw outputs into actual (x, y, w, h) bounding boxes.
         """

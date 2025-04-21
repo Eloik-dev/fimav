@@ -10,7 +10,6 @@ class MainWindow(tk.Tk):
         self.title("Face & Emotion Detection")
         self.video_capture = video_capture
         self.detector = detector
-        self.current_detections = []
 
         # Setup canvas for video
         self.width = width
@@ -29,10 +28,6 @@ class MainWindow(tk.Tk):
         # PhotoImage reference
         self.photo = None
 
-        # Previous box positions for lerping
-        self.prev_rects = {}
-        self.lerp_speed = 0.7
-
         # Start update loop
         self.after(33, self.update_frame)
 
@@ -43,30 +38,17 @@ class MainWindow(tk.Tk):
             self.after(33, self.update_frame)
             return
 
-        self.current_detections = self.detector.get_latest_detection()
+        current_detections = self.detector.get_latest_detection()
 
         frame = cv2.resize(frame, (self.width, self.height))
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        # Interpolate and draw rectangles
-        new_rects = []
-        for idx, (x, y, w, h) in enumerate(self.current_detections):
-            prev = self.prev_rects.get(idx, (x, y, w, h))
-
-            # Linear interpolation
-            lerped_x = int(prev[0] + (x - prev[0]) * self.lerp_speed)
-            lerped_y = int(prev[1] + (y - prev[1]) * self.lerp_speed)
-            lerped_w = int(prev[2] + (w - prev[2]) * self.lerp_speed)
-            lerped_h = int(prev[3] + (h - prev[3]) * self.lerp_speed)
-
-            new_rects.append((lerped_x, lerped_y, lerped_w, lerped_h))
-            self.prev_rects[idx] = (lerped_x, lerped_y, lerped_w, lerped_h)
-
-            # Draw
+        # Draw rectangles
+        for x, y, w, h in current_detections:
             cv2.rectangle(
                 rgb,
-                (lerped_x, lerped_y),
-                (lerped_x + lerped_w, lerped_y + lerped_h),
+                (x, y),
+                (x + w, y + h),
                 (0, 255, 0),
                 2,
             )
@@ -90,3 +72,4 @@ class MainWindow(tk.Tk):
             )
 
         self.after(33, self.update_frame)
+
