@@ -73,10 +73,10 @@ class FaceEmotionDetector:
         )
         self.face_thread.start()
 
-        self.emotion_thread = threading.Thread(
-            target=self._emotion_processing_loop, daemon=True
-        )
-        self.emotion_thread.start()
+        #self.emotion_thread = threading.Thread(
+        #    target=self._emotion_processing_loop, daemon=True
+        #)
+        #self.emotion_thread.start()
 
     def stop_processing(self):
         """Stop the face and emotion detection thread."""
