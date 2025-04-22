@@ -1,13 +1,12 @@
 import argparse
 import logging
 import sys
-import queue
-import threading
 from fimav import __version__
 from fimav.processing.video_capture import VideoCapture
 from fimav.processing.face_emotion_detector import FaceEmotionDetector
 from fimav.gui.main_window import MainWindow
 from fimav.mqtt.mqtt_manager import MqttManager
+from fimav.midi.midi_controller import MidiController
 
 __author__ = "Eloik-dev"
 __copyright__ = "Eloik-dev"
@@ -91,7 +90,7 @@ def create_face_emotion_detection_thread(video_capture, face_size, width, height
     return detector
 
 
-def create_gui_thread(video_capture, detector, face_size, width, height):
+def create_gui_thread(video_capture, detector, midi_controller, face_size, width, height):
     """
     Runs the Tkinter GUI in a separate daemon thread.
 
@@ -103,8 +102,8 @@ def create_gui_thread(video_capture, detector, face_size, width, height):
     window = MainWindow(video_capture, detector, face_size, width, height)
     window.mainloop()
     detector.stop_processing()
+    midi_controller.stop_processing()
     print("GUI thread finished")
-
 
 
 def main(args):
@@ -122,11 +121,17 @@ def main(args):
         camera_height=args.camera_height,
         camera_width=args.camera_width,
     )
-    #mqtt_manager = MqttManager()
+    mqtt_manager = MqttManager()
+    midi_controller = MidiController(mqtt_manager)
+    
+    midi_controller.start_processing()
+
+
+    midi_controller.set_midi_file_from_path("Test.mid")
 
     if video_capture.start_capture():
         detector = create_face_emotion_detection_thread(video_capture, face_size, width, height)        
-        create_gui_thread(video_capture, detector, face_size, width, height)
+        create_gui_thread(video_capture, detector, midi_controller, face_size, width, height)
     else:
         _logger.error("Failed to start video capture.")
 

@@ -1,5 +1,9 @@
 import paho.mqtt.client as mqtt
 
+"""
+    Read MIDI files, 
+"""
+
 class MqttManager:
     """Simple class to manage MQTT communication."""
 
@@ -24,4 +28,4 @@ class MqttManager:
 
     def send_midi(self, msg):
         """Send a MIDI message as a string to the MQTT broker."""
-        self._client.publish(self._topic_out, msg.bytes().hex())
+        self._client.publish(self._topic_out, str(msg))  
