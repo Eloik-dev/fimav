@@ -125,6 +125,9 @@ class FaceEmotionDetector:
         w = x2 - x
         h = y2 - y
         face = frame[y : y + h, x : x + w]
+        
+        if face.size == 0:
+            return
 
         face_bgr = cv2.cvtColor(face, cv2.COLOR_RGB2BGR)
 
