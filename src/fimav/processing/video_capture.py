@@ -39,9 +39,10 @@ class VideoCapture:
         """
         gst_pipeline = (
             "v4l2src device=/dev/video{} ! "
-            "image/jpeg,framerate=30/1,width={},height={} ! "
+            "image/jpeg, width={}, height={}, framerate=30/1 ! "
             "jpegdec ! "
             "videoconvert ! "
+            "queue max-size-buffers=1 leaky=downstream ! "
             "appsink drop=true max-buffers=1"
         ).format(
             self.camera_index,
