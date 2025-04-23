@@ -37,8 +37,7 @@ class MainWindow(tk.Tk):
         self.progress.place(relx=0.5, rely=0.93, anchor="n")
 
         # Keep reference to PhotoImage
-        self.photo = ImageTk.PhotoImage(None, master=self.canvas)
-        self.canvas.itemconfig(self.canvas_img, image=self.photo)
+        self.photo = None
 
         self.prev_boxes = []
         self.smooth_factor = 0.8
@@ -98,8 +97,13 @@ class MainWindow(tk.Tk):
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
         data = frame[..., ::-1].tobytes()
+        # Only create PhotoImage once
         pil_img = Image.frombuffer('RGB', (self.width, self.height), data, 'raw', 'RGB', 0, 1)
-        self.photo.paste(pil_img)               # update in place
+        if self.photo is None:
+            self.photo = ImageTk.PhotoImage(pil_img, master=self.canvas)
+            self.canvas.itemconfig(self.canvas_img, image=self.photo)
+        else:
+            self.photo.paste(pil_img)
 
         # Update target emotion and progress
         target_emotion = self.emotion_controller.get_target_emotion()
