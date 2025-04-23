@@ -1,19 +1,25 @@
 #!/bin/bash
+
+# Activate your virtual environment
 . .venv/bin/activate
 
-OPENCV_VER="master" 
-TMPDIR=$(mktemp -d)
+# Set OpenCV build directory
+OPENCV_DIR="./opencv_build"
+OPENCV_VER="master"
 
-# Build and install OpenCV from source.
-cd "${TMPDIR}"
-git clone --branch ${OPENCV_VER} --depth 1 --recurse-submodules --shallow-submodules https://github.com/opencv/opencv-python.git opencv-python-${OPENCV_VER}
-cd opencv-python-${OPENCV_VER}
+# Clone only if it doesn't already exist
+if [ ! -d "${OPENCV_DIR}" ]; then
+    git clone --branch ${OPENCV_VER} --depth 1 --recurse-submodules --shallow-submodules https://github.com/opencv/opencv-python.git "${OPENCV_DIR}"
+fi
 
-# Disable headless build, enable contrib and GUI
+cd "${OPENCV_DIR}"
+
+# Optional: pull latest changes if needed
+# git pull origin ${OPENCV_VER}
+
+# Enable full OpenCV GUI + GStreamer
 export ENABLE_CONTRIB=1
 export ENABLE_HEADLESS=0
-
-# Pass flags for GStreamer + GTK GUI support
 export CMAKE_ARGS="
   -DWITH_GSTREAMER=ON
   -DWITH_GTK=ON
@@ -21,11 +27,11 @@ export CMAKE_ARGS="
   -DWITH_V4L=ON
 "
 
-# ✅ Force compatible numpy first
-pip install numpy==1.26.4
+# Install numpy version compatible with Python 3.11
+pip install --upgrade numpy==1.26.4
 
-# Then build wheel
+# Build the OpenCV wheel
 pip wheel . --verbose
 
-# Install OpenCV
+# Install the generated wheel
 pip install opencv_python*.whl
