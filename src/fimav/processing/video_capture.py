@@ -35,11 +35,12 @@ class VideoCapture:
         Starts the video capture process in a separate thread.
         """
         gst_pipeline = (
-            "v4l2src device=/dev/video{0} io-mode=4 ! "
-            "video/x-raw,format=YUY2,width={1},height={2},framerate=30/1 ! "
-            "queue max-size-buffers=1 leaky=downstream ! "
+            "v4l2src device=/dev/video{0} ! "
+            "image/jpeg, width={1}, height={2}, framerate=30/1 ! "
+            "jpegdec ! "
             "videoconvert ! "
-            "video/x-raw,format=BGR ! "
+            "video/x-raw, format=BGR ! "
+            "queue max-size-buffers=1 leaky=downstream ! "
             "appsink drop=true max-buffers=1"
         ).format(
             self.camera_index,
