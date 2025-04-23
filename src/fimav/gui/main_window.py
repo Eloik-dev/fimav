@@ -77,7 +77,6 @@ class MainWindow(tk.Tk):
 
         raw_boxes = self.detector.get_latest_detection() or []
         scaled_boxes = self._scale_boxes(raw_boxes)
-        frame = cv2.resize(frame, (self.width, self.height))
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         # Interpolate boxes
