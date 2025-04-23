@@ -36,14 +36,17 @@ class VideoCapture:
         """
         gst_pipeline = (
             "v4l2src device=/dev/video{0} io-mode=4 ! "
-            "image/jpeg,width={1},height={2},framerate=30/1 ! "
-            "jpegparse ! "
-            "v4l2jpegdec ! "
-            "queue max-size-buffers=1 leaky=downstream ! "
-            "videoconvert ! "
-            "video/x-raw,format=BGR ! "
-            "appsink drop=true max-buffers=1 sync=false"
-        ).format(self.camera_index, self.camera_width, self.camera_height)
+            "video/x-raw,format=YUY2,width={1},height={2},framerate=30/1 ! "
+            "queue max-size-buffers=1 leaky=downstream ! "          # drop old frames
+            "glupload ! "                                          # upload to GPU
+            "glcolorconvert ! "                                    # GPU colorspace convert
+            "video/x-raw(memory:GLMemory),format=RGBA,width={1},height={2} ! "
+            "glimagesink sync=false"                               # render via OpenGL/KMS
+        ).format(
+            self.camera_index,
+            self.camera_width,
+            self.camera_height
+        )
 
         self.cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
 
