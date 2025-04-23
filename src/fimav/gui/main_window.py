@@ -40,9 +40,12 @@ class MainWindow(tk.Tk):
         self.photo = None
         self.prev_boxes = []
         self.smooth_factor = 0.8
+        
+        # Set interval based on desired FPS
+        self.interval = round((1 / 30) * 1000)
 
         # Start update loop
-        self.after(15, self.update_frame)
+        self.after(self.interval, self.update_frame)
 
     def lerp_box(self, box1, box2, t):
         return [
@@ -69,7 +72,7 @@ class MainWindow(tk.Tk):
     def update_frame(self):
         frame = self.video_capture.get_latest_frame()
         if frame is None:
-            self.after(15, self.update_frame)
+            self.after(self.interval, self.update_frame)
             return
 
         raw_boxes = self.detector.get_latest_detection() or []
@@ -110,4 +113,4 @@ class MainWindow(tk.Tk):
             self.target_label.config(text="Nourrissez l'orchestre de vos émotions !")
             self.progress["value"] = 0
 
-        self.after(15, self.update_frame)
+        self.after(self.interval, self.update_frame)

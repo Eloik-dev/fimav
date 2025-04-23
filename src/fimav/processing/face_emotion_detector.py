@@ -83,6 +83,9 @@ class FaceEmotionDetector:
 
     def _face_processing_loop(self):
         print("Face detection thread started")
+        FPS = 30
+        interval = 1.0 / FPS
+
         while not self._stop_face_thread.is_set():
             frame = self.video_capture.get_latest_frame()
             if frame is not None:
@@ -92,7 +95,7 @@ class FaceEmotionDetector:
                 self.shared_resized_frame = resized_image
                 self.latest_detection = self._detect_faces()
 
-            time.sleep(0.01)
+            time.sleep(interval)
 
     def _emotion_processing_loop(self):
         print("Emotion classification thread started")
@@ -121,7 +124,7 @@ class FaceEmotionDetector:
     def _classify_emotion(self, frame: np.ndarray):
         if self.latest_detection is None or len(self.latest_detection) == 0:
             return
-        
+
         x, y, x2, y2 = self.latest_detection[0]
         w = x2 - x
         h = y2 - y
@@ -134,7 +137,7 @@ class FaceEmotionDetector:
         y2 = min(frame.shape[0], y + h + y_pad)
 
         face = frame[y1:y2, x1:x2]
-        
+
         if face.size == 0:
             return
 
@@ -156,7 +159,7 @@ class FaceEmotionDetector:
         probs[self.emotion_labels.index("triste")] *= 10
         idx = int(np.argmax(probs))
         return self.emotion_labels[idx]
-    
+
     def softmax(self, x):
         e_x = np.exp(x - np.max(x))
         return e_x / e_x.sum(axis=0)
