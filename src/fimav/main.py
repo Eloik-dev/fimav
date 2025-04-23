@@ -4,6 +4,7 @@ import sys
 from fimav import __version__
 from fimav.processing.video_capture import VideoCapture
 from fimav.processing.face_emotion_detector import FaceEmotionDetector
+from fimav.processing.emotion_state_controller import EmotionStateController
 from fimav.gui.main_window import MainWindow
 from fimav.mqtt.mqtt_manager import MqttManager
 from fimav.midi.midi_controller import MidiController
@@ -82,15 +83,15 @@ def create_face_emotion_detection_thread(video_capture, face_size, width, height
         "models/face/ultraface_12.bin",
         "models/emotion/emotion_ferplus_12.param",
         "models/emotion/emotion_ferplus_12.bin",
-        face_size
+        face_size,
     )
     detector.start_processing()
     print("Face Emotion Detection started in a separate thread")
-    
+
     return detector
 
 
-def create_gui_thread(video_capture, detector, midi_controller, face_size, width, height):
+def create_gui_thread(video_capture, detector, face_size, width, height):
     """
     Runs the Tkinter GUI in a separate daemon thread.
 
@@ -102,7 +103,6 @@ def create_gui_thread(video_capture, detector, midi_controller, face_size, width
     window = MainWindow(video_capture, detector, face_size, width, height)
     window.mainloop()
     detector.stop_processing()
-    midi_controller.stop_processing()
     print("GUI thread finished")
 
 
@@ -112,28 +112,36 @@ def main(args):
 
     width = args.width
     height = args.height
-    print(f"Initial display size: {width}x{height}")
-    
     face_size = (320, 240)
+    print(f"Initial display size: {width}x{height}")
 
-    video_capture = VideoCapture(
-        camera_index=args.camera_index,
-        camera_height=args.camera_height,
-        camera_width=args.camera_width,
-    )
-    mqtt_manager = MqttManager()
-    midi_controller = MidiController(mqtt_manager)
-    
-    midi_controller.start_processing()
+    try:
+        video_capture = VideoCapture(
+            camera_index=args.camera_index,
+            camera_height=args.camera_height,
+            camera_width=args.camera_width,
+        )
+        mqtt_manager = MqttManager()
+        midi_controller = MidiController(mqtt_manager)
+        
+        # Create and initialize the EmotionStateController
+        EmotionStateController(midi_controller)
 
-
-    midi_controller.set_midi_file_from_path("Test.mid")
-
-    if video_capture.start_capture():
-        detector = create_face_emotion_detection_thread(video_capture, face_size, width, height)        
-        create_gui_thread(video_capture, detector, midi_controller, face_size, width, height)
-    else:
-        _logger.error("Failed to start video capture.")
+        if video_capture.start_capture():
+            detector = create_face_emotion_detection_thread(
+                video_capture, face_size, width, height
+            )
+            create_gui_thread(
+                video_capture, detector, face_size, width, height
+            )
+        else:
+            _logger.error("Failed to start video capture.")
+    except KeyboardInterrupt:
+        print("Ctrl-C received. Stopping...")
+        if "detector" in locals():
+            detector.stop_processing()
+        if video_capture:
+            video_capture.stop_capture()
 
     _logger.info("Script ends here")
 

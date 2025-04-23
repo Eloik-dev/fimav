@@ -1,57 +1,50 @@
 from mido import MidiFile
 import threading
-import time
 import os
+
 
 class MidiController:
     def __init__(self, mqtt_manager):
         self.mqtt_manager = mqtt_manager
-        self.midi_file = None
-
         self.midi_thread = None
-        self._stop_midi_thread = threading.Event()
-        self.running = False
+        self._stop_event = threading.Event()
+        self.lock = threading.Lock()
 
-    def start_processing(self):
-        if self.running:
-            return
-
-        self.running = True
-        self._stop_midi_thread.clear()
-
-        self.midi_thread = threading.Thread(target=self._run, daemon=True)
-        self.midi_thread.start()
-
-    def stop_processing(self):
-        self.running = False
-        self._stop_midi_thread.set()
-
-        if self.midi_thread and self.midi_thread.is_alive():
-            self.midi_thread.join()
-
-    def _run(self):
-        while not self._stop_midi_thread.is_set():
-            if self.midi_file:
-                self._process_midi()
-            else:
-                print("No MIDI file selected.")
-                time.sleep(1)
-
-    def set_midi_file_from_path(self, midi_file_name):
-        file_path = "midi/{}".format(midi_file_name)
+    def play_midi_file(self, midi_file_name):
+        file_path = f"midi/{midi_file_name}"
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"File not found: {file_path}")
 
-        self.midi_file = MidiFile(file_path)
+        with self.lock:
+            # Stop current thread if it's playing
+            self._stop_event.set()
+            if self.midi_thread and self.midi_thread.is_alive():
+                self.midi_thread.join()
 
-    def _process_midi(self):
-        print("Starting MIDI processing...")
+            # Clear stop flag and start new playback
+            self._stop_event.clear()
+            self.midi_thread = threading.Thread(
+                target=self._play_midi_file, args=(file_path,), daemon=True
+            )
+            self.midi_thread.start()
+
+    def _play_midi_file(self, file_path):
+        print(f"Playing MIDI: {file_path}")
         try:
-            for message in self.midi_file.play():
-                if self._stop_midi_thread.is_set():
+            midi_file = MidiFile(file_path)
+            for message in midi_file.play():
+                if self._stop_event.is_set():
+                    print("Playback interrupted.")
                     break
                 self.mqtt_manager.send_midi(message)
-                print(message)
         finally:
-            print("Stopping MIDI processing...")
+            print("Playback finished or stopped.")
 
+    def stop(self):
+        with self.lock:
+            self._stop_event.set()
+            if self.midi_thread and self.midi_thread.is_alive():
+                self.midi_thread.join()
+                
+    def is_playing(self):
+        return self.midi_thread and self.midi_thread.is_alive()

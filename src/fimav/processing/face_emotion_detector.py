@@ -3,6 +3,7 @@ import threading
 import numpy as np
 import ncnn
 import time
+from fimav.processing.emotion_state_controller import EmotionStateController
 
 
 class FaceEmotionDetector:
@@ -26,7 +27,7 @@ class FaceEmotionDetector:
 
         # Shared state
         self.latest_detection = []
-        self.current_emotion = None
+        self.emotion_controller = EmotionStateController.get_instance()
         self.shared_resized_frame = None
 
         # Threads
@@ -48,13 +49,13 @@ class FaceEmotionDetector:
         # Emotion info
         self.emotion_labels = [
             "neutre",
-            "heureux",
-            "surpris",
+            "heureuse",
+            "surprenante",
             "triste",
-            "fâché",
-            "dégouté",
-            "apeuré",
-            "méprisant",
+            "enrageante",
+            "dégoutante",
+            "apeurante",
+            "méprisante",
         ]
 
     def start_processing(self):
@@ -64,8 +65,8 @@ class FaceEmotionDetector:
         self._stop_face_thread.clear()
         self._stop_emotion_thread.clear()
 
-        self.face_thread = threading.Thread(target=self._face_processing_loop, daemon=True)
-        self.emotion_thread = threading.Thread(target=self._emotion_processing_loop, daemon=True)
+        self.face_thread = threading.Thread(target=self._face_processing_loop)
+        self.emotion_thread = threading.Thread(target=self._emotion_processing_loop)
 
         self.face_thread.start()
         self.emotion_thread.start()
@@ -98,8 +99,8 @@ class FaceEmotionDetector:
         while not self._stop_emotion_thread.is_set():
             frame = self.shared_resized_frame
             if frame is not None:
-                self.current_emotion = self._classify_emotion(frame)
-            time.sleep(0.4)
+                self.emotion_controller.update_emotion(self._classify_emotion(frame))
+            time.sleep(0.2)
 
     def _detect_faces(self):
         if self.shared_resized_frame is None:
@@ -115,7 +116,7 @@ class FaceEmotionDetector:
         _, out0 = ex.extract("out0")
         _, out1 = ex.extract("out1")
 
-        return self.decode_boxes(out0, out1, score_threshold=0.5, iou_threshold=0.2)
+        return self.decode_boxes(out0, out1, score_threshold=0.2, iou_threshold=0.2)
 
     def _classify_emotion(self, frame: np.ndarray):
         if self.latest_detection is None or len(self.latest_detection) == 0:
@@ -186,6 +187,3 @@ class FaceEmotionDetector:
 
     def get_latest_detection(self):
         return self.latest_detection
-
-    def get_current_emotion(self):
-        return self.current_emotion

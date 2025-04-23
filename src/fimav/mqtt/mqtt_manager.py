@@ -13,10 +13,9 @@ class MqttManager:
         self._client.on_connect = self._on_connect
         self._client.on_disconnect = self._on_disconnect
         self._client.username_pw_set("orchestrateur", "Orchestrateur1234")
-        self._client.tls_set()
-        self._client.connect("ca0d3a7cc2a84a14b5e0af2b21eb7c47.s1.eu.hivemq.cloud", 8883)
+        self._client.connect("localhost", 1884)
         self._client.loop_start()
-        self._topic_out = "cegep-victo/fimav/orchestre"
+        self._topic_out = "fimav/orchestre"
 
     def _on_connect(self, __client__, __userdata__, __flags__, rc):
         """Callback when the client is connected."""

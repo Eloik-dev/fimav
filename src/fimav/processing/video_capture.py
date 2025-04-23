@@ -51,7 +51,7 @@ class VideoCapture:
         print(f"Actual FPS: {self.cap.get(cv2.CAP_PROP_FPS)}")
 
         self.running = True
-        self.capture_thread = threading.Thread(target=self._capture_loop, daemon=True)
+        self.capture_thread = threading.Thread(target=self._capture_loop)
         self.capture_thread.start()
         return True
 
