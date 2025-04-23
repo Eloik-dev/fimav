@@ -1,6 +1,9 @@
-import cv2
 import threading
-import queue
+import cv2
+
+# Global OpenCV optimizations
+cv2.setNumThreads(0)  # Disable OpenCV's internal threading
+cv2.ocl.setUseOpenCL(False)  # Disable OpenCL (optional, depends on platform)
 
 
 class VideoCapture:
@@ -15,9 +18,8 @@ class VideoCapture:
 
         Args:
             camera_index (int): Index of the camera to use.
-            capture_width (int, optional): Width of the captured frames.
-            capture_height (int, optional): Height of the captured frames.
-            buffer_size (int): Maximum number of frames to buffer.
+            capture_width (int): Width of the captured frames.
+            capture_height (int): Height of the captured frames.
         """
         self.camera_index = camera_index
         self.camera_width = camera_width
@@ -26,7 +28,10 @@ class VideoCapture:
         self.running = False
         self.capture_thread = None
 
-        self.latest_frame = None
+        self._lock = threading.Lock()  # Light lock for thread-safe frame access
+        self._frame_slot_0 = None
+        self._frame_slot_1 = None
+        self._active_index = 0  # Atomic-like swap index
 
     def start_capture(self):
         """
@@ -36,14 +41,13 @@ class VideoCapture:
 
         if not self.cap.isOpened():
             print(f"Error: Could not open camera {self.camera_index}")
-            self.running = False
             return False
 
         self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.camera_width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.camera_height)
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-        self.cap.set(cv2.CAP_PROP_FPS, 60)
+        self.cap.set(cv2.CAP_PROP_FPS, 30)
 
         print(
             f"Actual resolution: {self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)} x {self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)}"
@@ -64,18 +68,31 @@ class VideoCapture:
             self.capture_thread.join()
         if self.cap and self.cap.isOpened():
             self.cap.release()
-            self.cap = None  # Ensure cap is reset after release
+            self.cap = None
+
 
     def _capture_loop(self):
         while self.running:
-            # Read the latest frame
             ret, frame = self.cap.read()
             if not ret:
-                print("VideoCapture: Error reading frame. Stopping capture.")
+                print("VideoCapture: Error reading frame.")
                 self.running = False
                 break
 
-            self.latest_frame = frame
+            with self._lock:
+                if self._active_index == 0:
+                    self._frame_slot_1 = frame
+                    self._active_index = 1
+                else:
+                    self._frame_slot_0 = frame
+                    self._active_index = 0
 
     def get_latest_frame(self):
-        return self.latest_frame
+        """
+        Retrieves the latest captured frame in a thread-safe manner.
+        """
+        with self._lock:
+            if self._active_index == 0:
+                return self._frame_slot_0
+            else:
+                return self._frame_slot_1
