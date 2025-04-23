@@ -4,6 +4,7 @@ import cv2
 # Global OpenCV optimizations
 cv2.setNumThreads(0)  # Disable OpenCV's internal threading
 cv2.ocl.setUseOpenCL(False)  # Disable OpenCL (optional, depends on platform)
+print(cv2.getBuildInformation())
 
 class VideoCapture:
     def __init__(
