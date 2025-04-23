@@ -37,7 +37,9 @@ class MainWindow(tk.Tk):
         self.progress.place(relx=0.5, rely=0.93, anchor="n")
 
         # Keep reference to PhotoImage
-        self.photo = None
+        self.photo = ImageTk.PhotoImage(None, master=self.canvas)
+        self.canvas.itemconfig(self.canvas_img, image=self.photo)
+
         self.prev_boxes = []
         self.smooth_factor = 0.8
         
@@ -77,7 +79,7 @@ class MainWindow(tk.Tk):
 
         raw_boxes = self.detector.get_latest_detection() or []
         scaled_boxes = self._scale_boxes(raw_boxes)
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # frame = cv2.resize(frame, (self.width, self.height)) # Put back if needed
 
         # Interpolate boxes
         interpolated_boxes = []
@@ -93,11 +95,11 @@ class MainWindow(tk.Tk):
 
         # Draw boxes
         for x, y, w, h in interpolated_boxes:
-            cv2.rectangle(rgb, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-        pil_img = Image.fromarray(rgb)
-        self.photo = ImageTk.PhotoImage(image=pil_img)
-        self.canvas.itemconfig(self.canvas_img, image=self.photo)
+        data = frame[..., ::-1].tobytes()
+        pil_img = Image.frombuffer('RGB', (self.width, self.height), data, 'raw', 'RGB', 0, 1)
+        self.photo.paste(pil_img)               # update in place
 
         # Update target emotion and progress
         target_emotion = self.emotion_controller.get_target_emotion()
