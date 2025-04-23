@@ -37,7 +37,7 @@ class VideoCapture:
         gst_pipeline = (
             "v4l2src device=/dev/video{0} ! "
             "image/jpeg, width={1}, height={2}, framerate=30/1 ! "
-            "vaapijpegdec ! "
+            "jpegdec ! "
             "videoconvert ! "
             "video/x-raw, format=BGR ! "
             "queue max-size-buffers=1 leaky=downstream ! "
