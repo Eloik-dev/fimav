@@ -8,20 +8,7 @@ print(cv2.getBuildInformation())
 
 
 class VideoCapture:
-    def __init__(
-        self,
-        camera_index=0,
-        camera_width=1920,
-        camera_height=1080,
-    ):
-        """
-        Initializes the VideoCapture object.
-
-        Args:
-            camera_index (int): Index of the camera to use.
-            capture_width (int): Width of the captured frames.
-            capture_height (int): Height of the captured frames.
-        """
+    def __init__(self, camera_index=0, camera_width=1920, camera_height=1080):
         self.camera_index = camera_index
         self.camera_width = camera_width
         self.camera_height = camera_height
@@ -29,6 +16,7 @@ class VideoCapture:
         self.running = False
         self.capture_thread = None
         self._latest_frame = None
+        self._lock = threading.Lock()
 
     def start_capture(self):
         """
@@ -42,11 +30,7 @@ class VideoCapture:
             "video/x-raw, format=BGR ! "
             "queue max-size-buffers=1 leaky=downstream ! "
             "appsink drop=true max-buffers=1"
-        ).format(
-            self.camera_index,
-            self.camera_width,
-            self.camera_height
-        )
+        ).format(self.camera_index, self.camera_width, self.camera_height)
 
         self.cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
 
@@ -82,10 +66,9 @@ class VideoCapture:
                 print("VideoCapture: Error reading frame.")
                 self.running = False
                 break
-            self._latest_frame = frame
+            with self._lock:
+                self._latest_frame = frame
 
     def get_latest_frame(self):
-        """
-        Retrieves the latest captured frame atomically.
-        """
-        return self._latest_frame
+        with self._lock:
+            return self._latest_frame
