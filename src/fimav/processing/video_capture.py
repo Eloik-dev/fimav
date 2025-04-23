@@ -35,15 +35,14 @@ class VideoCapture:
         Starts the video capture process in a separate thread.
         """
         gst_pipeline = (
-            "uvch264src device=/dev/video{0} initial-bitrate=3000000 fixed-framerate=true "
-            "average-bitrate=3000000 iframe-period=33 ! "
-            "video/x-h264,stream-format=byte-stream,width={1},height={2},framerate=30/1 ! "
+            "v4l2src device=/dev/video{0} io-mode=4 ! "
+            "image/jpeg,width={1},height={2},framerate=30/1 ! "
+            "jpegparse ! "
+            "v4l2jpegdec ! "
             "queue max-size-buffers=1 leaky=downstream ! "
-            "h264parse ! "
-            "v4l2h264dec ! "
             "videoconvert ! "
-            "queue max-size-buffers=1 leaky=downstream ! "
-            "appsink drop=true max-buffers=1"
+            "video/x-raw,format=BGR ! "
+            "appsink drop=true max-buffers=1 sync=false"
         ).format(self.camera_index, self.camera_width, self.camera_height)
 
         self.cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
