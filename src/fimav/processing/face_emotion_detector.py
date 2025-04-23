@@ -116,7 +116,7 @@ class FaceEmotionDetector:
         _, out0 = ex.extract("out0")
         _, out1 = ex.extract("out1")
 
-        return self.decode_boxes(out0, out1, score_threshold=0.2, iou_threshold=0.2)
+        return self.decode_boxes(out0, out1, score_threshold=0.5, iou_threshold=0.2)
 
     def _classify_emotion(self, frame: np.ndarray):
         if self.latest_detection is None or len(self.latest_detection) == 0:
@@ -125,7 +125,15 @@ class FaceEmotionDetector:
         x, y, x2, y2 = self.latest_detection[0]
         w = x2 - x
         h = y2 - y
-        face = frame[y : y + h, x : x + w]
+        padding = 0.1  # 10% padding
+        x_pad = int(w * padding)
+        y_pad = int(h * padding)
+        x1 = max(0, x - x_pad)
+        y1 = max(0, y - y_pad)
+        x2 = min(frame.shape[1], x + w + x_pad)
+        y2 = min(frame.shape[0], y + h + y_pad)
+
+        face = frame[y1:y2, x1:x2]
         
         if face.size == 0:
             return
@@ -145,6 +153,7 @@ class FaceEmotionDetector:
         _, out = ex.extract("out0")
         scores = np.array(out)
         probs = self.softmax(scores)
+        probs[self.emotion_labels.index("triste")] *= 1.2
         idx = int(np.argmax(probs))
         return self.emotion_labels[idx]
     
