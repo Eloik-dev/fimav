@@ -37,11 +37,10 @@ class VideoCapture:
         gst_pipeline = (
             "v4l2src device=/dev/video{0} io-mode=4 ! "
             "video/x-raw,format=YUY2,width={1},height={2},framerate=30/1 ! "
-            "queue max-size-buffers=1 leaky=downstream ! "          # drop old frames
-            "glupload ! "                                          # upload to GPU
-            "glcolorconvert ! "                                    # GPU colorspace convert
-            "video/x-raw(memory:GLMemory),format=RGBA,width={1},height={2} ! "
-            "glimagesink sync=false"                               # render via OpenGL/KMS
+            "queue max-size-buffers=1 leaky=downstream ! "
+            "videoconvert ! "
+            "video/x-raw,format=BGR ! "
+            "appsink drop=true max-buffers=1"
         ).format(
             self.camera_index,
             self.camera_width,
