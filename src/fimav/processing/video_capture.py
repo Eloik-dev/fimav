@@ -27,11 +27,7 @@ class VideoCapture:
         self.cap = None
         self.running = False
         self.capture_thread = None
-
-        self._lock = threading.Lock()  # Light lock for thread-safe frame access
-        self._frame_slot_0 = None
-        self._frame_slot_1 = None
-        self._active_index = 0  # Atomic-like swap index
+        self._latest_frame = None
 
     def start_capture(self):
         """
@@ -49,7 +45,7 @@ class VideoCapture:
             self.camera_width,
             self.camera_height
         )
-        
+
         self.cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
 
         if not self.cap.isOpened():
@@ -77,7 +73,6 @@ class VideoCapture:
             self.cap.release()
             self.cap = None
 
-
     def _capture_loop(self):
         while self.running:
             ret, frame = self.cap.read()
@@ -85,21 +80,10 @@ class VideoCapture:
                 print("VideoCapture: Error reading frame.")
                 self.running = False
                 break
-
-            with self._lock:
-                if self._active_index == 0:
-                    self._frame_slot_1 = frame
-                    self._active_index = 1
-                else:
-                    self._frame_slot_0 = frame
-                    self._active_index = 0
+            self._latest_frame = frame
 
     def get_latest_frame(self):
         """
-        Retrieves the latest captured frame in a thread-safe manner.
+        Retrieves the latest captured frame atomically.
         """
-        with self._lock:
-            if self._active_index == 0:
-                return self._frame_slot_0
-            else:
-                return self._frame_slot_1
+        return self._latest_frame
