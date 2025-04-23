@@ -41,7 +41,7 @@ class MainWindow(tk.Tk):
 
         self.prev_boxes = []
         self.smooth_factor = 0.8
-        
+
         # Set interval based on desired FPS
         self.interval = round((1 / 30) * 1000)
 
@@ -76,46 +76,43 @@ class MainWindow(tk.Tk):
             self.after(self.interval, self.update_frame)
             return
 
+        frame = cv2.resize(frame, (self.width, self.height))
+
+        # Draw interpolated boxes
         raw_boxes = self.detector.get_latest_detection() or []
         scaled_boxes = self._scale_boxes(raw_boxes)
-        # frame = cv2.resize(frame, (self.width, self.height)) # Put back if needed
-
-        # Interpolate boxes
-        interpolated_boxes = []
-        for i, new_box in enumerate(scaled_boxes):
-            if i < len(self.prev_boxes):
-                interpolated = self.lerp_box(
-                    self.prev_boxes[i], new_box, self.smooth_factor
-                )
-            else:
-                interpolated = new_box
-            interpolated_boxes.append(interpolated)
+        interpolated_boxes = [
+            (
+                self.lerp_box(self.prev_boxes[i], b, self.smooth_factor)
+                if i < len(self.prev_boxes)
+                else b
+            )
+            for i, b in enumerate(scaled_boxes)
+        ]
         self.prev_boxes = interpolated_boxes
 
-        # Draw boxes
         for x, y, w, h in interpolated_boxes:
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
+        # Update image on canvas
         data = frame[..., ::-1].tobytes()
-        # Only create PhotoImage once
-        pil_img = Image.frombuffer('RGB', (self.width, self.height), data, 'raw', 'RGB', 0, 1)
-        if self.photo is None:
-            self.photo = ImageTk.PhotoImage(pil_img, master=self.canvas)
-            self.canvas.itemconfig(self.canvas_img, image=self.photo)
-        else:
-            self.photo.paste(pil_img)
+        pil_img = Image.frombuffer(
+            "RGB", (self.width, self.height), data, "raw", "RGB", 0, 1
+        )
+        self.photo = ImageTk.PhotoImage(pil_img, master=self.canvas)
+        self.canvas.itemconfig(self.canvas_img, image=self.photo)
 
-        # Update target emotion and progress
+        # Update emotion display
         target_emotion = self.emotion_controller.get_target_emotion()
-        progress = self.emotion_controller.get_emotion_progress()
-
-        if target_emotion:
-            # Show target emotion text
-            self.target_label.config(text=f"L'orchestre va jouer une musique {target_emotion}")
-            # Update progress bar
-            self.progress["value"] = progress
-        else:
-            self.target_label.config(text="Nourrissez l'orchestre de vos émotions !")
-            self.progress["value"] = 0
+        self.target_label.config(
+            text=(
+                f"L'orchestre va jouer une musique {target_emotion}"
+                if target_emotion
+                else "Nourrissez l'orchestre de vos émotions !"
+            )
+        )
+        self.progress["value"] = (
+            self.emotion_controller.get_emotion_progress() if target_emotion else 0
+        )
 
         self.after(self.interval, self.update_frame)
