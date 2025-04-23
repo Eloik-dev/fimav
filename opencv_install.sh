@@ -21,6 +21,10 @@ export CMAKE_ARGS="
   -DWITH_V4L=ON
 "
 
+# ✅ Force compatible numpy first
+pip install numpy==1.26.4
+
+# Then build wheel
 pip wheel . --verbose
 
 # Install OpenCV
