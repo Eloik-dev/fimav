@@ -5,7 +5,6 @@ import cv2
 cv2.setNumThreads(0)  # Disable OpenCV's internal threading
 cv2.ocl.setUseOpenCL(False)  # Disable OpenCL (optional, depends on platform)
 
-
 class VideoCapture:
     def __init__(
         self,
@@ -37,17 +36,23 @@ class VideoCapture:
         """
         Starts the video capture process in a separate thread.
         """
-        self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_V4L2)
+        gst_pipeline = (
+            "v4l2src device=/dev/video{} ! "
+            "image/jpeg,framerate=30/1,width={},height={} ! "
+            "jpegdec ! "
+            "videoconvert ! "
+            "appsink drop=true max-buffers=1"
+        ).format(
+            self.camera_index,
+            self.camera_width,
+            self.camera_height
+        )
+        
+        self.cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
 
         if not self.cap.isOpened():
             print(f"Error: Could not open camera {self.camera_index}")
             return False
-
-        self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.camera_width)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.camera_height)
-        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-        self.cap.set(cv2.CAP_PROP_FPS, 30)
 
         print(
             f"Actual resolution: {self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)} x {self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)}"
