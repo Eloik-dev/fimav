@@ -6,6 +6,7 @@ cv2.setNumThreads(0)  # Disable OpenCV's internal threading
 cv2.ocl.setUseOpenCL(False)  # Disable OpenCL (optional, depends on platform)
 print(cv2.getBuildInformation())
 
+
 class VideoCapture:
     def __init__(
         self,
@@ -34,17 +35,16 @@ class VideoCapture:
         Starts the video capture process in a separate thread.
         """
         gst_pipeline = (
-            "v4l2src device=/dev/video{} ! "
-            "image/jpeg, width={}, height={}, framerate=30/1 ! "
-            "jpegdec ! "
+            "uvch264src device=/dev/video{0} initial-bitrate=3000000 fixed-framerate=true "
+            "average-bitrate=3000000 iframe-period=33 ! "
+            "video/x-h264,stream-format=byte-stream,width={1},height={2},framerate=30/1 ! "
+            "queue max-size-buffers=1 leaky=downstream ! "
+            "h264parse ! "
+            "v4l2h264dec ! "
             "videoconvert ! "
             "queue max-size-buffers=1 leaky=downstream ! "
             "appsink drop=true max-buffers=1"
-        ).format(
-            self.camera_index,
-            self.camera_width,
-            self.camera_height
-        )
+        ).format(self.camera_index, self.camera_width, self.camera_height)
 
         self.cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
 
