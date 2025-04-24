@@ -111,7 +111,7 @@ class MainWindow:
             cv2.putText(
                 frame,
                 f"La prochaine musique sera {current_emotion}",
-                (bar_x + bar_width - int(bar_width / 2), bar_y - 10),
+                (bar_x + bar_width, bar_y - 10),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 1.0,
                 (255, 255, 255),
