@@ -30,6 +30,7 @@ class MainWindow:
         """Starts the video stream in a separate thread using GStreamer."""
         if not self.is_running:
             self.is_running = True
+            self.video_capture.start_capture()
             self.thread = threading.Thread(target=self._update_frame)
             self.thread.start()
 

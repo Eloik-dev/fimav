@@ -123,9 +123,9 @@ def main(args):
 
         # Create and initialize the VideoCapture instance
         VideoCapture(
-            camera_index=args.camera_index,
-            camera_height=args.camera_height,
-            camera_width=args.camera_width,
+            args.camera_index,
+            args.camera_width,
+            args.camera_height,
         )
         
         # Create and initialize the EmotionStateController
