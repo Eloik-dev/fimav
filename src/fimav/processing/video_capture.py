@@ -30,25 +30,19 @@ class VideoCapture:
         self.capture_thread = None
         self._latest_frame = None
 
-    def start_capture(self):
-        """
-        Starts the video capture process in a separate thread.
-        """
-        gst_pipeline = (
-            "v4l2src device=/dev/video{0} ! "
-            "image/jpeg, width={1}, height={2}, framerate=15/1 ! "
-            "jpegdec ! "
-            "videoconvert ! "
-            "video/x-raw, format=BGR ! "
-            "queue max-size-buffers=1 leaky=downstream ! "
-            "appsink drop=true max-buffers=1"
-        ).format(
-            self.camera_index,
-            self.camera_width,
-            self.camera_height
+    def gstreamer_pipeline(self, capture_width=1920, capture_height=1080, framerate=30):
+        return (
+            f"v4l2src device=/dev/video0 ! "
+            f"image/jpeg, width={capture_width}, height={capture_height}, framerate={framerate}/1 ! "
+            f"jpegdec ! "
+            f"videoconvert ! "
+            f"video/x-raw, format=(string)BGR ! "
+            f"appsink"
         )
 
-        self.cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
+    def start_capture(self):
+        pipeline = self.gstreamer_pipeline(capture_width=self.camera_width, capture_height=self.camera_height)
+        self.cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
 
         if not self.cap.isOpened():
             print(f"Error: Could not open camera {self.camera_index}")
