@@ -10,8 +10,8 @@ from fimav.processing.video_capture import VideoCapture
 class FaceEmotionDetector:
     _instance = None
 
-    def __init__(
-        self,
+    def __new__(
+        cls,
         __width__,
         __height__,
         __face_param__="./models/face/ultraface_12.param",
@@ -21,9 +21,10 @@ class FaceEmotionDetector:
         __face_size__=(320, 240),
         __emo_size__=(64, 64),
     ):
-        if self._instance is None:
-            self._instance = self
-        return self._instance
+
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(
         self,
@@ -36,6 +37,8 @@ class FaceEmotionDetector:
         face_size=(320, 240),
         emo_size=(64, 64),
     ):
+        if getattr(self, "_initialized", False):
+            return
         self.width = width
         self.height = height
         self.video_capture = VideoCapture.get_instance()
@@ -74,7 +77,7 @@ class FaceEmotionDetector:
             "apeurante",
             "méprisante",
         ]
-        
+
         self._initialized = True
 
     @classmethod
