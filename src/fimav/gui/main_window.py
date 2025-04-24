@@ -63,6 +63,59 @@ class MainWindow:
                 print("Error: Failed to read frame. Skipping.")
                 continue
 
+            # Optionally: detect face or emotion here using self.detector
+            # and set your overlay text dynamically:
+            overlay_text = "Conducting: 😊"
+
+            # Draw the overlay text on the frame
+            cv2.putText(
+                frame,
+                overlay_text,
+                (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.0,
+                (255, 255, 255),
+                2,
+                cv2.LINE_AA,
+            )
+
+            # Update progress (looping for demo)
+            self.progress += self.progress_speed
+            if self.progress > 1.0:
+                self.progress = 0.0
+
+            # Draw progress bar at bottom middle
+            bar_width = int(self.width * 0.6)
+            bar_height = 20
+            bar_x = int((self.width - bar_width) / 2)
+            bar_y = self.height - 40
+            filled_width = int(bar_width * self.progress)
+
+            # Background bar (dark grey)
+            cv2.rectangle(
+                frame,
+                (bar_x, bar_y),
+                (bar_x + bar_width, bar_y + bar_height),
+                (50, 50, 50),
+                cv2.FILLED,
+            )
+            # Filled portion (green)
+            cv2.rectangle(
+                frame,
+                (bar_x, bar_y),
+                (bar_x + filled_width, bar_y + bar_height),
+                (0, 255, 0),
+                cv2.FILLED,
+            )
+            # Border (white)
+            cv2.rectangle(
+                frame,
+                (bar_x, bar_y),
+                (bar_x + bar_width, bar_y + bar_height),
+                (255, 255, 255),
+                2,
+            )
+
             # Convert BGR to RGB for PIL
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(frame_rgb)
