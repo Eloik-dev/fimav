@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import Canvas
 from PIL import Image, ImageTk
 import cv2
 
@@ -14,9 +13,8 @@ class MainWindow(tk.Tk):
         self.detector = detector
         self.face_size = face_size
 
-        self.canvas = Canvas(self, width=width, height=height, highlightthickness=0)
-        self.canvas.pack()
-        self.canvas_img = self.canvas.create_image(0, 0, anchor=tk.NW, image=None)
+        self.label = tk.Label(self, highlightthickness=0)
+        self.label.pack()
 
         self.photo = None
         self.interval = round((1 / 30) * 1000)
@@ -34,7 +32,8 @@ class MainWindow(tk.Tk):
         pil_img = Image.frombuffer(
             "RGB", (self.width, self.height), data, "raw", "RGB", 0, 1
         )
-        self.photo = ImageTk.PhotoImage(pil_img, master=self.canvas)
-        self.canvas.itemconfig(self.canvas_img, image=self.photo)
+        self.photo = ImageTk.PhotoImage(pil_img, master=self.label)
+        self.label.config(image=self.photo)
 
         self.after(self.interval, self.update_frame)
+

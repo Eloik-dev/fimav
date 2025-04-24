@@ -21,9 +21,6 @@ class CameraTest:
         self.is_running = False
         self.thread = None
 
-        self.label = tk.Label(root, text="Live Stream - Logitech C920", font=("Helvetica", 16))
-        self.label.pack(pady=10)
-
         self.video_frame = tk.Label(root)
         self.video_frame.pack()
 
