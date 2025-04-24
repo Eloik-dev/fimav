@@ -7,5 +7,4 @@ pillow
 ncnn
 mido
 paho-mqtt
-PyGObject
 # sphinx_rtd_theme
