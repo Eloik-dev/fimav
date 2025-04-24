@@ -92,6 +92,9 @@ def main(args):
         args.camera_height,
     )
 
+    # Create and initialize the EmotionStateController
+    EmotionStateController(midi_controller)
+
     # Create the FaceEmotionDetector instance
     FaceEmotionDetector(
         width,
@@ -102,9 +105,6 @@ def main(args):
         "models/emotion/emotion_ferplus_12.bin",
         face_size,
     )
-
-    # Create and initialize the EmotionStateController
-    EmotionStateController(midi_controller)
 
     # Instantiate and run the Tkinter MainWindow
     root = tk.Tk()
