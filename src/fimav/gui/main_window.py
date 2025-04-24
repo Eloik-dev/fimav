@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 import cv2
 
 
-class SimpleVideoWindow(tk.Tk):
+class MainWindow(tk.Tk):
     def __init__(self, video_capture, width, height):
         super().__init__()
         self.title("Video Feed")
