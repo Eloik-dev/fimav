@@ -78,6 +78,7 @@ class MainWindow:
                 cv2.LINE_AA,
             )
 
+            print("Emotion progress:", self.emotion_controller.get_emotion_progress())
             # Draw progress bar at bottom middle
             bar_width = int(self.width * 0.6)
             bar_height = 20
