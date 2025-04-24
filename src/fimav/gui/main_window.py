@@ -9,74 +9,135 @@ from fimav.processing.video_capture import VideoCapture
 class MainWindow:
     def __init__(self, root, detector, face_size, width, height):
         self.root = root
-        self.root.title("Video Feed")
+        self.root.title("Video Feed with Progress Bar Overlay")
 
+        # Video capture setup
         self.video_capture = VideoCapture.get_instance()
         self.width = width
         self.height = height
         self.detector = detector
         self.face_size = face_size
 
-        self.video_frame = tk.Label(root)
-        self.video_frame.pack()
+        # Progress bar state (0.0 to 1.0)
+        self.progress = 0.0
+        self.progress_speed = 0.005  # change per frame
 
+        # Create a Canvas to hold the video frame
+        self.canvas = tk.Canvas(root, width=self.width, height=self.height)
+        self.canvas.pack()
+
+        # Create image item (initially empty)
+        self.canvas_img = self.canvas.create_image(0, 0, anchor="nw", image=None)
+
+        # Streaming control
         self.interval = 1 / 30
         self.is_running = False
         self.thread = None
 
+        # Ensure clean shutdown
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
     def start(self):
-        """Starts the video stream in a separate thread using GStreamer."""
+        """Starts the video stream in a separate thread."""
         if not self.is_running:
             self.is_running = True
             self.video_capture.start_capture()
-            self.thread = threading.Thread(target=self._update_frame)
+            self.thread = threading.Thread(target=self._update_frame, daemon=True)
             self.thread.start()
 
     def stop(self):
-        """Stops the video stream."""
+        """Stops the video stream and thread."""
         if self.is_running:
             self.is_running = False
-            if self.video_capture is not None:  # Check if camera was ever opened
+            if self.video_capture is not None:
                 self.video_capture.stop_capture()
-            if self.thread is not None:  # Check if thread was ever started
-                self.thread.join()  # Wait for thread to finish
+            if self.thread is not None:
+                self.thread.join()
             self.thread = None
 
     def _update_frame(self):
-        """Reads frames from the camera and updates the Tkinter label."""
+        """Fetches frames, overlays text and progress bar with OpenCV, updates the Canvas image."""
         while self.is_running:
-            try:
-                frame = self.video_capture.get_new_frame()
-                if frame is None:
-                    print("Error: Failed to read frame. Skipping.")
-                    continue
+            frame = self.video_capture.get_new_frame()
+            if frame is None:
+                print("Error: Failed to read frame. Skipping.")
+                continue
 
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert to RGB for PIL
-                
-                cv2.putText(
-                    frame,
-                    "Conducting: 😊",
-                    (10, 30),                       # x,y position in pixels
-                    cv2.FONT_HERSHEY_SIMPLEX,       # built-in font
-                    1.0,                            # font scale
-                    (255, 255, 255),                # color in BGR
-                    2,                              # line thickness
-                    cv2.LINE_AA                     # anti-aliased for smoothness
-                )
+            # Optionally: detect face or emotion here using self.detector
+            # and set your overlay text dynamically:
+            overlay_text = "Conducting: 😊"
 
-                img = Image.fromarray(frame)
-                img_tk = ImageTk.PhotoImage(image=img)
-                self.video_frame.config(image=img_tk)
-                self.video_frame.image = img_tk  # Keep a reference!
-            except Exception as e:
-                print(f"Error in update_frame: {e}")
-                self.stop()  # stop stream on error
-                return
-            time.sleep(0.01)  # Add a small delay
+            # Draw the overlay text on the frame
+            cv2.putText(
+                frame,
+                overlay_text,
+                (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.0,
+                (255, 255, 255),
+                2,
+                cv2.LINE_AA,
+            )
+
+            # Update progress (looping for demo)
+            self.progress += self.progress_speed
+            if self.progress > 1.0:
+                self.progress = 0.0
+
+            # Draw progress bar at bottom middle
+            bar_width = int(self.width * 0.6)
+            bar_height = 20
+            bar_x = int((self.width - bar_width) / 2)
+            bar_y = self.height - 40
+            filled_width = int(bar_width * self.progress)
+
+            # Background bar (dark grey)
+            cv2.rectangle(
+                frame,
+                (bar_x, bar_y),
+                (bar_x + bar_width, bar_y + bar_height),
+                (50, 50, 50),
+                cv2.FILLED,
+            )
+            # Filled portion (green)
+            cv2.rectangle(
+                frame,
+                (bar_x, bar_y),
+                (bar_x + filled_width, bar_y + bar_height),
+                (0, 255, 0),
+                cv2.FILLED,
+            )
+            # Border (white)
+            cv2.rectangle(
+                frame,
+                (bar_x, bar_y),
+                (bar_x + bar_width, bar_y + bar_height),
+                (255, 255, 255),
+                2,
+            )
+
+            # Convert BGR to RGB for PIL
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(frame_rgb)
+            img_tk = ImageTk.PhotoImage(image=img)
+
+            # Update Canvas image item
+            self.canvas.itemconfig(self.canvas_img, image=img_tk)
+            # Keep reference to avoid garbage collection
+            self.canvas.image = img_tk
+
+            # Throttle loop
+            time.sleep(self.interval)
 
     def _on_close(self):
-        """Handles window close event."""
-        self.stop()  # Stop the stream before exiting
+        """Handles window close event by stopping capture and closing."""
+        self.stop()
         self.root.destroy()
+
+
+# Example usage:
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = MainWindow(root, detector=None, face_size=(128, 128), width=640, height=480)
+    app.start()
+    root.mainloop()
