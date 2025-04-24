@@ -72,42 +72,6 @@ def setup_logging(loglevel):
         level=loglevel, stream=sys.stdout, format=logformat, datefmt="%Y-%m-%d %H:%M:%S"
     )
 
-
-def create_face_emotion_detection_thread(face_size, width, height):
-    """Runs the Face Emotion Detection in a separate thread."""
-    # Create the FaceEmotionDetector instance
-    detector = FaceEmotionDetector(
-        width,
-        height,
-        "models/face/ultraface_12.param",
-        "models/face/ultraface_12.bin",
-        "models/emotion/emotion_ferplus_12.param",
-        "models/emotion/emotion_ferplus_12.bin",
-        face_size,
-    )
-    detector.start_processing()
-    print("Face Emotion Detection started in a separate thread")
-
-    return detector
-
-
-def create_gui_thread(detector, face_size, width, height):
-    """
-    Runs the Tkinter GUI in a separate daemon thread.
-
-    :param width: window width
-    :param height: window height
-    :returns: the Thread object running the GUI
-    """
-    # Instantiate and run the Tkinter MainWindow
-    root = tk.Tk()
-    window = MainWindow(root, detector, face_size, width, height)
-    window.start()
-    root.mainloop()
-    detector.stop_processing()
-    print("GUI thread finished")
-
-
 def main(args):
     args = parse_args(args)
     setup_logging(args.loglevel)
@@ -117,32 +81,35 @@ def main(args):
     face_size = (320, 240)
     print(f"Initial display size: {width}x{height}")
 
-    try:
-        mqtt_manager = MqttManager()
-        midi_controller = MidiController(mqtt_manager)
+    mqtt_manager = MqttManager()
+    midi_controller = MidiController(mqtt_manager)
 
-        # Create and initialize the VideoCapture instance
-        VideoCapture(
-            args.camera_index,
-            args.camera_width,
-            args.camera_height,
-        )
-        
-        # Create and initialize the EmotionStateController
-        EmotionStateController(midi_controller)
+    # Create and initialize the VideoCapture instance
+    VideoCapture(
+        args.camera_index,
+        args.camera_width,
+        args.camera_height,
+    )
+    
+    # Create and initialize the EmotionStateController
+    EmotionStateController(midi_controller)
 
-        detector = create_face_emotion_detection_thread(
-            face_size, width, height
-        )
-        create_gui_thread(
-            detector, face_size, width, height
-        )
-    except KeyboardInterrupt:
-        print("Ctrl-C received. Stopping...")
-        if "detector" in locals():
-            detector.stop_processing()
-            
-        VideoCapture.get_instance().stop_capture()
+    # Create the FaceEmotionDetector instance
+    FaceEmotionDetector(
+        width,
+        height,
+        "models/face/ultraface_12.param",
+        "models/face/ultraface_12.bin",
+        "models/emotion/emotion_ferplus_12.param",
+        "models/emotion/emotion_ferplus_12.bin",
+        face_size,
+    )
+
+    # Instantiate and run the Tkinter MainWindow
+    root = tk.Tk()
+    window = MainWindow(root, face_size, width, height)
+    window.start()
+    root.mainloop()
 
     _logger.info("Script ends here")
 

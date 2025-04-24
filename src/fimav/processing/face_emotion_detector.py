@@ -8,6 +8,23 @@ from fimav.processing.video_capture import VideoCapture
 
 
 class FaceEmotionDetector:
+    _instance = None
+
+    def __init__(
+        self,
+        __width__,
+        __height__,
+        __face_param__="./models/face/ultraface_12.param",
+        __face_bin__="./models/face/ultraface_12.bin",
+        __emo_param__="./models/emotion/emotion_ferplus_12.param",
+        __emo_bin__="./models/emotion/emotion_ferplus_12.bin",
+        __face_size__=(320, 240),
+        __emo_size__=(64, 64),
+    ):
+        if self._instance is None:
+            self._instance = self
+        return self._instance
+
     def __init__(
         self,
         width,
@@ -57,6 +74,15 @@ class FaceEmotionDetector:
             "apeurante",
             "méprisante",
         ]
+        
+        self._initialized = True
+
+    @classmethod
+    def get_instance(cls):
+        """Return the singleton, or raise if not yet created."""
+        if cls._instance is None or not getattr(cls._instance, "_initialized", False):
+            raise RuntimeError("VideoCapture has not been initialized")
+        return cls._instance
 
     def start_processing(self):
         if self.running:

@@ -4,18 +4,19 @@ import cv2
 import time
 import threading
 from fimav.processing.video_capture import VideoCapture
+from fimav.processing.face_emotion_detector import FaceEmotionDetector
 
 
 class MainWindow:
-    def __init__(self, root, detector, face_size, width, height):
+    def __init__(self, root, face_size, width, height):
         self.root = root
         self.root.title("Video Feed with Progress Bar Overlay")
 
         # Video capture setup
         self.video_capture = VideoCapture.get_instance()
+        self.detector = FaceEmotionDetector.get_instance()
         self.width = width
         self.height = height
-        self.detector = detector
         self.face_size = face_size
 
         # Progress bar state (0.0 to 1.0)
@@ -51,6 +52,7 @@ class MainWindow:
             self.is_running = False
             if self.video_capture is not None:
                 self.video_capture.stop_capture()
+                self.detector.stop_processing()
             if self.thread is not None:
                 self.thread.join()
             self.thread = None
@@ -133,11 +135,3 @@ class MainWindow:
         """Handles window close event by stopping capture and closing."""
         self.stop()
         self.root.destroy()
-
-
-# Example usage:
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = MainWindow(root, detector=None, face_size=(128, 128), width=640, height=480)
-    app.start()
-    root.mainloop()
