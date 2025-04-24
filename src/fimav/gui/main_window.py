@@ -91,7 +91,7 @@ class MainWindow:
             bar_x = int((self.width - bar_width) / 2)
             bar_y = self.height - 40
             filled_width = int(
-                bar_width * self.emotion_controller.get_emotion_progress() * 100
+                bar_width * self.emotion_controller.get_emotion_progress()
             )
 
             # Background bar (dark grey)
