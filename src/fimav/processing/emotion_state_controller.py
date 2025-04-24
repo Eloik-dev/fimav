@@ -75,7 +75,7 @@ class EmotionStateController:
         if not self.target_emotion or not self.emotion_start_time:
             return 0.0
         elapsed = time.time() - self.emotion_start_time
-        return min(elapsed / self.DELAY * 100.0, 100.0)
+        return min(elapsed / self.DELAY, 1)
 
     def _trigger_song(self, emotion: str):
         if emotion == "heureuse":

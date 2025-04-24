@@ -120,7 +120,7 @@ class MainWindow:
 
             # Convert BGR to RGB for PIL
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            img = Image.frombuffer("RGB", (frame.shape[1], frame.shape[0]), frame_rgb, "raw", "BGR", 0, 1)
+            img = Image.fromarray(frame_rgb)
             img_tk = ImageTk.PhotoImage(image=img)
 
             # Update Canvas image item
