@@ -5,7 +5,7 @@ import time
 import threading
 from fimav.processing.video_capture import VideoCapture
 from fimav.processing.face_emotion_detector import FaceEmotionDetector
-
+from fimav.processing.emotion_state_controller import EmotionStateController
 
 class MainWindow:
     def __init__(self, root, face_size, width, height):
@@ -15,13 +15,10 @@ class MainWindow:
         # Video capture setup
         self.video_capture = VideoCapture.get_instance()
         self.detector = FaceEmotionDetector.get_instance()
+        self.emotion_controller = EmotionStateController.get_instance()
         self.width = width
         self.height = height
         self.face_size = face_size
-
-        # Progress bar state (0.0 to 1.0)
-        self.progress = 0.0
-        self.progress_speed = 0.005  # change per frame
 
         # Create a Canvas to hold the video frame
         self.canvas = tk.Canvas(root, width=self.width, height=self.height)
@@ -81,17 +78,12 @@ class MainWindow:
                 cv2.LINE_AA,
             )
 
-            # Update progress (looping for demo)
-            self.progress += self.progress_speed
-            if self.progress > 1.0:
-                self.progress = 0.0
-
             # Draw progress bar at bottom middle
             bar_width = int(self.width * 0.6)
             bar_height = 20
             bar_x = int((self.width - bar_width) / 2)
             bar_y = self.height - 40
-            filled_width = int(bar_width * self.progress)
+            filled_width = int(bar_width * self.emotion_controller.get_emotion_progress())
 
             # Background bar (dark grey)
             cv2.rectangle(
