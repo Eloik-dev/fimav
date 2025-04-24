@@ -1,4 +1,3 @@
-import threading
 import cv2
 
 # Global OpenCV optimizations
@@ -26,8 +25,6 @@ class VideoCapture:
         self.camera_width = camera_width
         self.camera_height = camera_height
         self.cap = None
-        self.running = False
-        self.capture_thread = None
         self._latest_frame = None
 
     def gstreamer_pipeline(self):
@@ -53,33 +50,24 @@ class VideoCapture:
         )
         print(f"Actual FPS: {self.cap.get(cv2.CAP_PROP_FPS)}")
 
-        self.running = True
-        self.capture_thread = threading.Thread(target=self._capture_loop)
-        self.capture_thread.start()
         return True
 
     def stop_capture(self):
         """
         Stops the video capture process and releases resources.
         """
-        self.running = False
-        if self.capture_thread and self.capture_thread.is_alive():
-            self.capture_thread.join()
         if self.cap and self.cap.isOpened():
             self.cap.release()
             self.cap = None
 
-    def _capture_loop(self):
-        while self.running:
-            ret, frame = self.cap.read()
-            if not ret:
-                print("VideoCapture: Error reading frame.")
-                self.running = False
-                break
-            self._latest_frame = frame
-            
-    def is_running(self):
-        return self.running
+    def get_new_frame(self):
+        ret, frame = self.cap.read()
+        if not ret:
+            print("VideoCapture: Error reading frame.")
+            return None
+        
+        self._latest_frame = frame
+        return frame
 
     def get_latest_frame(self):
         """

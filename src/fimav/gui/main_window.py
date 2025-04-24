@@ -46,7 +46,7 @@ class MainWindow:
         """Reads frames from the camera and updates the Tkinter label."""
         while self.is_running:
             try:
-                frame = self.video_capture.get_latest_frame()
+                frame = self.video_capture.get_new_frame()
                 if frame is None:
                     print("Error: Failed to read frame. Skipping.")
                     continue
