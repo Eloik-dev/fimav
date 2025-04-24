@@ -191,31 +191,14 @@ class MainWindow:
         return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
     def _scale_boxes(self, raw_boxes):
-        model_width, model_height = self.face_size
-        model_aspect = model_width / model_height
-        display_aspect = self.width / self.height
-
-        if display_aspect > model_aspect:
-            # wider screen
-            display_height = self.height
-            display_width = int(display_height * model_aspect)
-            offset_x = int((self.width - display_width) / 2)
-            offset_y = 0
-        else:
-            display_width = self.width
-            display_height = int(display_width / model_aspect)
-            offset_x = 0
-            offset_y = int((self.height - display_height) / 2)
-
-        scale_x = display_width / model_width
-        scale_y = display_height / model_height
-
+        scale_x = self.width / self.face_size[0]
+        scale_y = self.height / self.face_size[1]
         scaled_boxes = []
         for x1, y1, x2, y2 in raw_boxes:
-            scaled_x1 = int(x1 * scale_x + offset_x)
-            scaled_y1 = int(y1 * scale_y + offset_y)
-            scaled_x2 = int(x2 * scale_x + offset_x)
-            scaled_y2 = int(y2 * scale_y + offset_y)
+            scaled_x1 = max(0, int(x1 * scale_x))
+            scaled_y1 = max(0, int(y1 * scale_y))
+            scaled_x2 = min(self.width, int(x2 * scale_x))
+            scaled_y2 = min(self.height, int(y2 * scale_y))
             scaled_boxes.append(
                 (scaled_x1, scaled_y1, scaled_x2 - scaled_x1, scaled_y2 - scaled_y1)
             )
