@@ -28,6 +28,7 @@ class VideoCapture:
         self.camera_height = camera_height
         self.cap = None
         self._latest_frame = None
+        self._initialized = True
 
     @classmethod
     def get_instance(cls):
