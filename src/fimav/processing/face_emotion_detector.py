@@ -122,7 +122,7 @@ class FaceEmotionDetector:
                 self.shared_resized_frame = resized_image
                 self.latest_detection = self._detect_faces()
 
-            time.sleep(1.0 / 60.0) # 30 FPS
+            time.sleep(1.0 / 20.0) # 30 FPS
 
     def _emotion_processing_loop(self):
         print("Emotion classification thread started")
