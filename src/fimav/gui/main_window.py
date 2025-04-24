@@ -55,7 +55,6 @@ class MainWindow:
 
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert to RGB for PIL
                 img = Image.fromarray(frame)
-                img = img.resize((1920, 1080), Image.LANCZOS)  # Resize for display
                 img_tk = ImageTk.PhotoImage(image=img)
                 self.video_frame.config(image=img_tk)
                 self.video_frame.image = img_tk  # Keep a reference!
