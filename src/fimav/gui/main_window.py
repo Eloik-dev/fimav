@@ -129,11 +129,11 @@ class MainWindow:
                 text_image = self.no_emotion_text_image
             else:
                 text_image = self.emotions_with_fonts[current_emotion]
-            
+
             h, w, _ = text_image
             x = bar_x + int((bar_width - w) / 2)
             y = bar_y - 40
-            frame[y:y+h, x:x+w] = text_image
+            frame[y : y + h, x : x + w] = text_image
 
             # Convert BGR to RGB for PIL
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -150,10 +150,21 @@ class MainWindow:
 
     def render_text_image(self, text, font_path="Arial", font_size=32):
         font = ImageFont.truetype(f"fonts/{font_path}.ttf", font_size)
-        text_size = font.getsize(text)
-        img = Image.new("RGB", text_size, (0, 0, 0))  # Transparent background if needed
+
+        # Dummy image to get drawing context
+        dummy_img = Image.new("RGB", (1, 1))
+        draw = ImageDraw.Draw(dummy_img)
+
+        # Get bounding box of the text
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+
+        # Create final image
+        img = Image.new("RGB", (text_width, text_height), (0, 0, 0))
         draw = ImageDraw.Draw(img)
         draw.text((0, 0), text, font=font, fill=(255, 255, 255))
+
         return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
     def _scale_boxes(self, raw_boxes):
