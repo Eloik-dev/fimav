@@ -43,12 +43,20 @@ class MainWindow:
         base_emotion_text = "La prochaine musique sera "
         self.emotions_with_fonts = [
             self.render_text_image(base_emotion_text + "heureuse", "Arial", font_size),
-            self.render_text_image(base_emotion_text + "surprenante", "Arial", font_size),
+            self.render_text_image(
+                base_emotion_text + "surprenante", "Arial", font_size
+            ),
             self.render_text_image(base_emotion_text + "triste", "Arial", font_size),
-            self.render_text_image(base_emotion_text + "enrageante", "Arial", font_size),
-            self.render_text_image(base_emotion_text + "dégoutante", "Arial", font_size),
+            self.render_text_image(
+                base_emotion_text + "enrageante", "Arial", font_size
+            ),
+            self.render_text_image(
+                base_emotion_text + "dégoutante", "Arial", font_size
+            ),
             self.render_text_image(base_emotion_text + "apeurante", "Arial", font_size),
-            self.render_text_image(base_emotion_text + "méprisante", "Arial", font_size),
+            self.render_text_image(
+                base_emotion_text + "méprisante", "Arial", font_size
+            ),
         ]
 
         # Ensure clean shutdown
@@ -124,16 +132,28 @@ class MainWindow:
                 2,
             )
 
-            # Show current emotion above progress bar
-            current_emotion = self.emotion_controller.get_target_emotion()
-            if current_emotion is None or current_emotion == 0:
-                text_image = self.no_emotion_text_image
-            else:
-                text_image = self.emotions_with_fonts[current_emotion - 1]
+            # Check if more than one person is detected
+            if len(scaled_boxes) > 1:
+                text_image = self.render_text_image(
+                    f"{scaled_boxes.len} visages sont détectés !\nVeuillez être seul(e) devant la caméra.",
+                    "Arial",
+                    32,
+                )
 
-            h, w, _ = text_image.shape
-            x = bar_x + int((bar_width - w) / 2)
-            y = bar_y - 60
+                h, w, _ = text_image.shape
+                x = int((self.width - w) / 2)
+                y = int((self.height - h) / 2)
+            else:  # Show current emotion above progress bar
+                current_emotion = self.emotion_controller.get_target_emotion()
+                if current_emotion is None or current_emotion == 0:
+                    text_image = self.no_emotion_text_image
+                else:
+                    text_image = self.emotions_with_fonts[current_emotion - 1]
+
+                h, w, _ = text_image.shape
+                x = bar_x + int((bar_width - w) / 2)
+                y = bar_y - 60
+
             frame[y : y + h, x : x + w] = text_image
 
             # Convert BGR to RGB for PIL
