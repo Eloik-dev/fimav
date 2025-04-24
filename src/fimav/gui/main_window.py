@@ -133,7 +133,7 @@ class MainWindow:
             h, w, _ = text_image.shape
             x = bar_x + int((bar_width - w) / 2)
             y = bar_y - 60
-            frame[y : y + h, x : x + w] = text_image
+            frame[y : y + h + 20, x : x + w] = text_image
 
             # Convert BGR to RGB for PIL
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
