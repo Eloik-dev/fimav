@@ -108,10 +108,16 @@ class MainWindow:
 
             # Show current emotion above progress bar
             current_emotion = self.emotion_controller.get_target_emotion()
+            text_width, text_height = cv2.getTextSize(
+                f"La prochaine musique sera {current_emotion}",
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.0,
+                2,
+            )[0]
             cv2.putText(
                 frame,
                 f"La prochaine musique sera {current_emotion}",
-                (bar_x + int(bar_width / 3), bar_y - 10),
+                (bar_x + int((bar_width - text_width) / 2), bar_y - 10),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 1.0,
                 (255, 255, 255),
