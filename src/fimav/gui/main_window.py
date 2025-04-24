@@ -3,6 +3,8 @@ from PIL import Image, ImageTk
 import cv2
 import time
 import threading
+from PIL import Image, ImageDraw, ImageFont
+import numpy as np
 from fimav.processing.video_capture import VideoCapture
 from fimav.processing.face_emotion_detector import FaceEmotionDetector
 from fimav.processing.emotion_state_controller import EmotionStateController
@@ -32,6 +34,21 @@ class MainWindow:
         self.interval = 1 / 30
         self.is_running = False
         self.thread = None
+
+        self.no_emotion_text_image = self.render_text_image(
+            "Contrôlez l'orchestre avec vos émotions !", "Arial", 20
+        )
+
+        base_emotion_text = "La prochaine musique sera "
+        self.emotions_with_fonts = [
+            self.render_text_image(base_emotion_text + "heureuse", "Arial", 20),
+            self.render_text_image(base_emotion_text + "surprenante", "Arial", 20),
+            self.render_text_image(base_emotion_text + "triste", "Arial", 20),
+            self.render_text_image(base_emotion_text + "enrageante", "Arial", 20),
+            self.render_text_image(base_emotion_text + "dégoutante", "Arial", 20),
+            self.render_text_image(base_emotion_text + "apeurante", "Arial", 20),
+            self.render_text_image(base_emotion_text + "méprisante", "Arial", 20),
+        ]
 
         # Ensure clean shutdown
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -109,25 +126,14 @@ class MainWindow:
             # Show current emotion above progress bar
             current_emotion = self.emotion_controller.get_target_emotion()
             if current_emotion is None:
-                text = "Contrôlez l'orchestre avec vos émotions !"
+                text_image = self.no_emotion_text_image
             else:
-                text = f"La prochaine musique sera {current_emotion}"
-            text_width, _ = cv2.getTextSize(
-                text,
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1.0,
-                2,
-            )[0]
-            cv2.putText(
-                frame,
-                text,
-                (bar_x + int((bar_width - text_width) / 2), bar_y - 10),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1.0,
-                (255, 255, 255),
-                2,
-                cv2.LINE_AA,
-            )
+                text_image = self.emotions_with_fonts[current_emotion]
+            
+            h, w, _ = text_image
+            x = bar_x + int((bar_width - w) / 2)
+            y = bar_y - 40
+            frame[y:y+h, x:x+w] = text_image
 
             # Convert BGR to RGB for PIL
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -141,6 +147,14 @@ class MainWindow:
 
             # Throttle loop
             time.sleep(self.interval)
+
+    def render_text_image(text, font_path="DejaVuSans.ttf", font_size=32):
+        font = ImageFont.truetype(font_path, font_size)
+        text_size = font.getsize(text)
+        img = Image.new("RGB", text_size, (0, 0, 0))  # Transparent background if needed
+        draw = ImageDraw.Draw(img)
+        draw.text((0, 0), text, font=font, fill=(255, 255, 255))
+        return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
     def _scale_boxes(self, raw_boxes):
         scale_x = self.width / self.face_size[0]

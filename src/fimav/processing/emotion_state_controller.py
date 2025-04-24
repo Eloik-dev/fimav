@@ -40,35 +40,35 @@ class EmotionStateController:
             raise RuntimeError("EmotionStateController has not been initialized")
         return cls._instance
 
-    def update_emotion(self, emotion: str):
+    def update_emotion(self, emotion_idx: int):
         # reset on neutral
-        if emotion == "neutre":
+        if emotion_idx == 0:
             self.target_emotion = None
             self.emotion_start_time = None
             return
 
         # ignore same as current song
-        if self.midi.is_playing() and emotion == self.last_emotion:
+        if self.midi.is_playing() and emotion_idx == self.last_emotion:
             return
 
         now = time.time()
 
         # new hold cycle
-        if emotion != self.target_emotion:
-            self.target_emotion = emotion
+        if emotion_idx != self.target_emotion:
+            self.target_emotion = emotion_idx
             self.emotion_start_time = now
             return
 
         # held long enough?
         if now - (self.emotion_start_time or now) >= self.DELAY:
-            self._trigger_song(emotion)
+            self._trigger_song(emotion_idx)
             self.target_emotion = None
             self.emotion_start_time = None
 
     def reset_last_emotion(self):
         self.last_emotion = None
 
-    def get_target_emotion(self) -> str:
+    def get_target_emotion(self) -> int:
         return self.target_emotion
 
     def get_emotion_progress(self) -> float:
@@ -77,12 +77,12 @@ class EmotionStateController:
         elapsed = time.time() - self.emotion_start_time
         return min(elapsed / self.DELAY, 1)
 
-    def _trigger_song(self, emotion: str):
-        if emotion == "heureuse":
+    def _trigger_song(self, emotion_idx: int):
+        if emotion_idx == 1:
             midi = random.choice(self.happy_songs)
-        elif emotion == "triste":
+        elif emotion_idx == 3:
             midi = random.choice(self.sad_songs)
         else:
             return
         self.midi.play_midi_file(midi)
-        self.last_emotion = emotion
+        self.last_emotion = emotion_idx
