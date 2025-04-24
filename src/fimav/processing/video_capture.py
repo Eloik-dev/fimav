@@ -44,7 +44,7 @@ class VideoCapture:
             f"jpegdec ! "
             f"videoconvert ! "
             f"video/x-raw, format=(string)BGR ! "
-            f"appsink drop=true max-buffers=1 sync=false"
+            f"appsink drop=true max-buffers=1 sync=true"
         )
 
     def start_capture(self):
