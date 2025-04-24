@@ -98,40 +98,6 @@ class MainWindow:
             for x, y, w, h in scaled_boxes:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-            # Draw progress bar at bottom middle
-            bar_width = int(self.width * 0.6)
-            bar_height = 20
-            bar_x = int((self.width - bar_width) / 2)
-            bar_y = self.height - 40
-            filled_width = int(
-                bar_width * self.emotion_controller.get_emotion_progress()
-            )
-
-            # Background bar (dark grey)
-            cv2.rectangle(
-                frame,
-                (bar_x, bar_y),
-                (bar_x + bar_width, bar_y + bar_height),
-                (50, 50, 50),
-                cv2.FILLED,
-            )
-            # Filled portion (green)
-            cv2.rectangle(
-                frame,
-                (bar_x, bar_y),
-                (bar_x + filled_width, bar_y + bar_height),
-                (0, 255, 0),
-                cv2.FILLED,
-            )
-            # Border (white)
-            cv2.rectangle(
-                frame,
-                (bar_x, bar_y),
-                (bar_x + bar_width, bar_y + bar_height),
-                (255, 255, 255),
-                2,
-            )
-
             # Check if more than one person is detected
             if len(scaled_boxes) > 1:
                 text_image = self.render_text_image(
@@ -143,7 +109,42 @@ class MainWindow:
                 h, w, _ = text_image.shape
                 x = int((self.width - w) / 2)
                 y = int((self.height - h) / 2)
-            else:  # Show current emotion above progress bar
+            else:
+                # Draw progress bar at bottom middle
+                bar_width = int(self.width * 0.6)
+                bar_height = 20
+                bar_x = int((self.width - bar_width) / 2)
+                bar_y = self.height - 40
+                filled_width = int(
+                    bar_width * self.emotion_controller.get_emotion_progress()
+                )
+
+                # Background bar (dark grey)
+                cv2.rectangle(
+                    frame,
+                    (bar_x, bar_y),
+                    (bar_x + bar_width, bar_y + bar_height),
+                    (50, 50, 50),
+                    cv2.FILLED,
+                )
+                # Filled portion (green)
+                cv2.rectangle(
+                    frame,
+                    (bar_x, bar_y),
+                    (bar_x + filled_width, bar_y + bar_height),
+                    (0, 255, 0),
+                    cv2.FILLED,
+                )
+                # Border (white)
+                cv2.rectangle(
+                    frame,
+                    (bar_x, bar_y),
+                    (bar_x + bar_width, bar_y + bar_height),
+                    (255, 255, 255),
+                    2,
+                )
+
+                # Show current emotion above progress bar
                 current_emotion = self.emotion_controller.get_target_emotion()
                 if current_emotion is None or current_emotion == 0:
                     text_image = self.no_emotion_text_image
