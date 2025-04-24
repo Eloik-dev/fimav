@@ -7,6 +7,7 @@ from fimav.processing.video_capture import VideoCapture
 from fimav.processing.face_emotion_detector import FaceEmotionDetector
 from fimav.processing.emotion_state_controller import EmotionStateController
 
+
 class MainWindow:
     def __init__(self, root, face_size, width, height):
         self.root = root
@@ -62,14 +63,18 @@ class MainWindow:
                 print("Error: Failed to read frame. Skipping.")
                 continue
 
-            # Optionally: detect face or emotion here using self.detector
-            # and set your overlay text dynamically:
-            overlay_text = "Conducting: 😊"
+            raw_boxes = self.detector.get_latest_detection() or []
+            scaled_boxes = self._scale_boxes(raw_boxes)
+
+            # Draw boxes
+            for x, y, w, h in scaled_boxes:
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
 
             # Draw the overlay text on the frame
             cv2.putText(
                 frame,
-                overlay_text,
+                "Conducting: 😊",
                 (10, 30),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 1.0,
@@ -78,13 +83,14 @@ class MainWindow:
                 cv2.LINE_AA,
             )
 
-            print("Emotion progress:", self.emotion_controller.get_emotion_progress())
             # Draw progress bar at bottom middle
             bar_width = int(self.width * 0.6)
             bar_height = 20
             bar_x = int((self.width - bar_width) / 2)
             bar_y = self.height - 40
-            filled_width = int(bar_width * self.emotion_controller.get_emotion_progress() * 100)
+            filled_width = int(
+                bar_width * self.emotion_controller.get_emotion_progress() * 100
+            )
 
             # Background bar (dark grey)
             cv2.rectangle(
@@ -123,6 +129,20 @@ class MainWindow:
 
             # Throttle loop
             time.sleep(self.interval)
+
+    def _scale_boxes(self, raw_boxes):
+        scale_x = self.width / self.face_size[0]
+        scale_y = self.height / self.face_size[1]
+        scaled_boxes = []
+        for x1, y1, x2, y2 in raw_boxes:
+            scaled_x1 = max(0, int(x1 * scale_x))
+            scaled_y1 = max(0, int(y1 * scale_y))
+            scaled_x2 = min(self.width, int(x2 * scale_x))
+            scaled_y2 = min(self.height, int(y2 * scale_y))
+            scaled_boxes.append(
+                (scaled_x1, scaled_y1, scaled_x2 - scaled_x1, scaled_y2 - scaled_y1)
+            )
+        return scaled_boxes
 
     def _on_close(self):
         """Handles window close event by stopping capture and closing."""
