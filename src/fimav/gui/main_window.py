@@ -131,7 +131,6 @@ class MainWindow:
                 text_image = self.emotions_with_fonts[current_emotion]
 
             h, w, _ = text_image.shape
-            h += 20
             x = bar_x + int((bar_width - w) / 2)
             y = bar_y - 60
             frame[y : y + h, x : x + w] = text_image
@@ -156,13 +155,14 @@ class MainWindow:
         dummy_img = Image.new("RGB", (1, 1))
         draw = ImageDraw.Draw(dummy_img)
 
-        # Get bounding box of the text
+        # Get tight bounding box
         bbox = draw.textbbox((0, 0), text, font=font)
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
 
-        # Create final image
-        img = Image.new("RGB", (text_width, text_height), (0, 0, 0))
+        # Add a bit of vertical padding (5–10 pixels is usually enough)
+        padding = 10
+        img = Image.new("RGB", (text_width, text_height + padding), (0, 0, 0))
         draw = ImageDraw.Draw(img)
         draw.text((0, 0), text, font=font, fill=(255, 255, 255))
 
