@@ -36,7 +36,7 @@ class MainWindow:
         self.thread = None
 
         self.no_emotion_text_image = self.render_text_image(
-            "Contrôlez l'orchestre avec vos émotions !", "Arial", 20
+            "Contrôlez l'orchestre avec vos émotions !", "Arial", 24
         )
 
         base_emotion_text = "La prochaine musique sera "
