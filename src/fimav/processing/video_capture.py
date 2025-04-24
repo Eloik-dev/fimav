@@ -2,9 +2,9 @@ import threading
 import cv2
 
 # Global OpenCV optimizations
-# cv2.setNumThreads(0)  # Disable OpenCV's internal threading
-# cv2.ocl.setUseOpenCL(False)  # Disable OpenCL (optional, depends on platform)
-# print(cv2.getBuildInformation())
+cv2.setNumThreads(0)  # Disable OpenCV's internal threading
+cv2.ocl.setUseOpenCL(False)  # Disable OpenCL (optional, depends on platform)
+print(cv2.getBuildInformation())
 
 
 class VideoCapture:
@@ -30,10 +30,10 @@ class VideoCapture:
         self.capture_thread = None
         self._latest_frame = None
 
-    def gstreamer_pipeline(self, capture_width=1920, capture_height=1080, framerate=30):
+    def gstreamer_pipeline(self):
         return (
             f"v4l2src device=/dev/video0 ! "
-            f"image/jpeg, width={capture_width}, height={capture_height}, framerate={framerate}/1 ! "
+            f"image/jpeg, width={self.camera_width}, height={self.camera_height}, framerate=30/1 ! "
             f"jpegdec ! "
             f"videoconvert ! "
             f"video/x-raw, format=(string)BGR ! "
@@ -41,7 +41,7 @@ class VideoCapture:
         )
 
     def start_capture(self):
-        pipeline = self.gstreamer_pipeline(capture_width=self.camera_width, capture_height=self.camera_height)
+        pipeline = self.gstreamer_pipeline()
         self.cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
 
         if not self.cap.isOpened():
