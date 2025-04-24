@@ -5,12 +5,14 @@ import cv2
 
 
 class MainWindow(tk.Tk):
-    def __init__(self, video_capture, width, height):
+    def __init__(self, video_capture, detector, face_size, width, height):
         super().__init__()
         self.title("Video Feed")
         self.video_capture = video_capture
         self.width = width
         self.height = height
+        self.detector = detector
+        self.face_size = face_size
 
         self.canvas = Canvas(self, width=width, height=height, highlightthickness=0)
         self.canvas.pack()
