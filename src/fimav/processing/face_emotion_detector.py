@@ -128,6 +128,7 @@ class FaceEmotionDetector:
         print("Emotion classification thread started")
         while not self._stop_emotion_thread.is_set():
             if len(self.latest_detection) > 1:
+                self.emotion_controller.update_emotion(0)
                 continue
             
             frame = self.shared_resized_frame
