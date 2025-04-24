@@ -122,6 +122,7 @@ class MainWindow:
             # Convert BGR to RGB for PIL
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(frame_rgb)
+            img = img.resize((self.width, self.height), Image.LANCZOS)
             img_tk = ImageTk.PhotoImage(image=img)
 
             # Update Canvas image item
@@ -133,6 +134,7 @@ class MainWindow:
             time.sleep(self.interval)
 
     def _scale_boxes(self, raw_boxes):
+        
         scale_x = self.width / self.face_size[0]
         scale_y = self.height / self.face_size[1]
         scaled_boxes = []
