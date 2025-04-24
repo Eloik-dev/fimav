@@ -131,9 +131,10 @@ class MainWindow:
                 text_image = self.emotions_with_fonts[current_emotion]
 
             h, w, _ = text_image.shape
+            h += 20
             x = bar_x + int((bar_width - w) / 2)
             y = bar_y - 60
-            frame[y + 10 : y + h, x : x + w] = text_image
+            frame[y : y + h, x : x + w] = text_image
 
             # Convert BGR to RGB for PIL
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
