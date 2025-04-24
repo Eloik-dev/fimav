@@ -4,6 +4,7 @@ import numpy as np
 import ncnn
 import time
 from fimav.processing.emotion_state_controller import EmotionStateController
+from fimav.processing.video_capture import VideoCapture
 
 
 class FaceEmotionDetector:
@@ -11,7 +12,6 @@ class FaceEmotionDetector:
         self,
         width,
         height,
-        video_capture,
         face_param="./models/face/ultraface_12.param",
         face_bin="./models/face/ultraface_12.bin",
         emo_param="./models/emotion/emotion_ferplus_12.param",
@@ -21,7 +21,7 @@ class FaceEmotionDetector:
     ):
         self.width = width
         self.height = height
-        self.video_capture = video_capture
+        self.video_capture = VideoCapture.get_instance()
         self.face_size = face_size
         self.emo_size = emo_size
 

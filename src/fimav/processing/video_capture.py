@@ -7,25 +7,34 @@ import cv2
 
 
 class VideoCapture:
+    _instance = None
+
+    def __new__(cls, __camera_index__, __camera_width__, __camera_height__):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(
         self,
         camera_index=0,
         camera_width=1920,
         camera_height=1080,
     ):
-        """
-        Initializes the VideoCapture object.
+        if getattr(self, "_initialized", False):
+            return
 
-        Args:
-            camera_index (int): Index of the camera to use.
-            capture_width (int): Width of the captured frames.
-            capture_height (int): Height of the captured frames.
-        """
         self.camera_index = camera_index
         self.camera_width = camera_width
         self.camera_height = camera_height
         self.cap = None
         self._latest_frame = None
+
+    @classmethod
+    def get_instance(cls):
+        """Return the singleton, or raise if not yet created."""
+        if cls._instance is None or not getattr(cls._instance, "_initialized", False):
+            raise RuntimeError("VideoCapture has not been initialized")
+        return cls._instance
 
     def gstreamer_pipeline(self):
         return (
@@ -65,7 +74,7 @@ class VideoCapture:
         if not ret:
             print("VideoCapture: Error reading frame.")
             return None
-        
+
         self._latest_frame = frame
         return frame
 

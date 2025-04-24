@@ -3,14 +3,15 @@ from PIL import Image, ImageTk
 import cv2
 import time
 import threading
+from fimav.processing.video_capture import VideoCapture
 
 
 class MainWindow:
-    def __init__(self, root, video_capture, detector, face_size, width, height):
+    def __init__(self, root, detector, face_size, width, height):
         self.root = root
         self.root.title("Video Feed")
-        
-        self.video_capture = video_capture
+
+        self.video_capture = VideoCapture.get_instance()
         self.width = width
         self.height = height
         self.detector = detector
@@ -50,7 +51,7 @@ class MainWindow:
                 if frame is None:
                     print("Error: Failed to read frame. Skipping.")
                     continue
-                    
+
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert to RGB for PIL
                 img = Image.fromarray(frame)
                 img = img.resize((1920, 1080), Image.LANCZOS)  # Resize for display
