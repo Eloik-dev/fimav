@@ -23,15 +23,6 @@ class CameraTest:
         self.is_running = False
         self.thread = None
 
-        self.start_button = tk.Button(
-            root, text="Start Stream", command=self.start_stream
-        )
-        self.start_button.pack(side=tk.LEFT, padx=10, pady=10)
-        self.stop_button = tk.Button(
-            root, text="Stop Stream", command=self.stop_stream, state=tk.DISABLED
-        )
-        self.stop_button.pack(side=tk.RIGHT, padx=10, pady=10)
-
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)  # Handle window close
 
     def start_stream(self):
@@ -45,8 +36,6 @@ class CameraTest:
                 return  # Exit if camera cannot be opened
 
             self.is_running = True
-            self.stop_button.config(state=tk.NORMAL)
-            self.start_button.config(state=tk.DISABLED)
             self.thread = threading.Thread(target=self.update_frame)
             self.thread.start()
 
@@ -54,8 +43,6 @@ class CameraTest:
         """Stops the video stream."""
         if self.is_running:
             self.is_running = False
-            self.stop_button.config(state=tk.DISABLED)
-            self.start_button.config(state=tk.NORMAL)
             if self.cap is not None:  # Check if camera was ever opened
                 self.cap.release()
             if self.thread is not None:  # Check if thread was ever started
@@ -92,5 +79,7 @@ class CameraTest:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = CameraApp(root, camera_index=0)  # Use camera index 0 (default webcam)
+    app = CameraTest(root, camera_index=0)  # Use camera index 0 (default webcam)
+    app.start_stream()
     root.mainloop()
+
