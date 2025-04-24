@@ -44,7 +44,7 @@ class MainWindow(tk.Tk):
         self.smooth_factor = 0.8
 
         # Set interval based on desired FPS
-        self.interval = round(1 / 30)
+        self.interval = 1 / 30
 
         # Start update loop
         self.update_frame()

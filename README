@@ -7,3 +7,10 @@ sudo apt install -y cmake g++ libjpeg-dev libpng-dev libtiff-dev \
 pip install scikit-build
 cd opencv_build
 pip install . --no-build-isolation
+
+
+
+
+# RUN THATT
+pip install --no-deps -e .
+pipdeptree --reverse --packages opencv-python
