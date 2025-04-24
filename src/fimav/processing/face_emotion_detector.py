@@ -146,7 +146,7 @@ class FaceEmotionDetector:
         _, out0 = ex.extract("out0")
         _, out1 = ex.extract("out1")
 
-        return self.decode_boxes(out0, out1, score_threshold=0.5, iou_threshold=0.2)
+        return self.decode_boxes(out0, out1, score_threshold=0.7, iou_threshold=0.3)
 
     def _classify_emotion(self, frame: np.ndarray):
         if self.latest_detection is None or len(self.latest_detection) == 0:
