@@ -13,8 +13,8 @@ class MainWindow(tk.Tk):
         self.detector = detector
         self.face_size = face_size
 
-        self.label = tk.Label(self, highlightthickness=0)
-        self.label.pack()
+        self.video_frame = tk.Label(self)
+        self.video_frame.pack()
 
         self.photo = None
         self.interval = round((1 / 30) * 1000)
@@ -27,13 +27,12 @@ class MainWindow(tk.Tk):
             self.after(self.interval, self.update_frame)
             return
 
-        frame = cv2.resize(frame, (self.width, self.height))
-        data = frame[..., ::-1].tobytes()
-        pil_img = Image.frombuffer(
-            "RGB", (self.width, self.height), data, "raw", "RGB", 0, 1
-        )
-        self.photo = ImageTk.PhotoImage(pil_img, master=self.label)
-        self.label.config(image=self.photo)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert to RGB for PIL
+        img = Image.fromarray(frame)
+        img = img.resize((1920, 1080), Image.LANCZOS)  # Resize for display
+        img_tk = ImageTk.PhotoImage(image=img)
+        self.video_frame.config(image=img_tk)
+        self.video_frame.image = img_tk  # Keep a reference!
 
         self.after(self.interval, self.update_frame)
 
