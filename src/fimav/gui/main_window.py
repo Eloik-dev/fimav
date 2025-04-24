@@ -63,7 +63,7 @@ class MainWindow:
                 print(f"Error in update_frame: {e}")
                 self.stop()  # stop stream on error
                 return
-            time.sleep(self.interval)  # Add a small delay
+            time.sleep(0.01)  # Add a small delay
 
     def _on_close(self):
         """Handles window close event."""
