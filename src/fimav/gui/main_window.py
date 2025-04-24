@@ -72,18 +72,6 @@ class MainWindow:
             for x, y, w, h in scaled_boxes:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-            # Draw the overlay text on the frame
-            cv2.putText(
-                frame,
-                "Conducting: 😊",
-                (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1.0,
-                (255, 255, 255),
-                2,
-                cv2.LINE_AA,
-            )
-
             # Draw progress bar at bottom middle
             bar_width = int(self.width * 0.6)
             bar_height = 20
@@ -116,6 +104,19 @@ class MainWindow:
                 (bar_x + bar_width, bar_y + bar_height),
                 (255, 255, 255),
                 2,
+            )
+
+            # Show current emotion above progress bar
+            current_emotion = self.emotion_controller.get_current_emotion()
+            cv2.putText(
+                frame,
+                f"La prochaine musique sera {current_emotion}",
+                (bar_x, bar_y - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.0,
+                (255, 255, 255),
+                2,
+                cv2.LINE_AA,
             )
 
             # Convert BGR to RGB for PIL
