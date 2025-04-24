@@ -40,11 +40,14 @@ class VideoCapture:
     def gstreamer_pipeline(self):
         return (
             f"v4l2src device=/dev/video0 ! "
-            f"video/x-raw, width={self.camera_width}, height={self.camera_height}, framerate=30/1, format=YUY2 ! "
+            f"video/x-raw, width={self.camera_width}, height={self.camera_height}, framerate=30/1 ! "
             f"videoconvert ! "
+            f"videoscale ! "
             f"video/x-raw, format=BGR ! "
-            f"appsink drop=true max-buffers=1 sync=false"
+            f"queue max-size-buffers=1 leaky=downstream ! "
+            f"appsink sync=false drop=true"
         )
+
 
     def start_capture(self):
         pipeline = self.gstreamer_pipeline()
