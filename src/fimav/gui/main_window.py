@@ -148,7 +148,7 @@ class MainWindow:
             # Throttle loop
             time.sleep(self.interval)
 
-    def render_text_image(text, font_path="DejaVuSans.ttf", font_size=32):
+    def render_text_image(self, text, font_path="DejaVuSans.ttf", font_size=32):
         font = ImageFont.truetype(font_path, font_size)
         text_size = font.getsize(text)
         img = Image.new("RGB", text_size, (0, 0, 0))  # Transparent background if needed
