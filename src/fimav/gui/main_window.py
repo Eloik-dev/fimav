@@ -36,7 +36,7 @@ class MainWindow:
         self.thread = None
 
         self.no_emotion_text_image = self.render_text_image(
-            "Contrôlez l'orchestre avec vos émotions !", "Arial", 24
+            "Contrôlez l'orchestre avec vos émotions !", "Arial", 20
         )
 
         base_emotion_text = "La prochaine musique sera "
@@ -125,14 +125,14 @@ class MainWindow:
 
             # Show current emotion above progress bar
             current_emotion = self.emotion_controller.get_target_emotion()
-            if current_emotion is None:
+            if current_emotion is None or current_emotion == 0:
                 text_image = self.no_emotion_text_image
             else:
                 text_image = self.emotions_with_fonts[current_emotion]
 
             h, w, _ = text_image.shape
             x = bar_x + int((bar_width - w) / 2)
-            y = bar_y - 40
+            y = bar_y - 20
             frame[y : y + h, x : x + w] = text_image
 
             # Convert BGR to RGB for PIL
