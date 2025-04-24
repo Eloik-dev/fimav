@@ -14,7 +14,7 @@ class MainWindow:
         self.detector = detector
         self.face_size = face_size
 
-        self.video_frame = tk.Label(self)
+        self.video_frame = tk.Label(root)
         self.video_frame.pack()
 
         self.interval = round((1 / 30) * 1000)
