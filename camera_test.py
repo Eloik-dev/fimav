@@ -25,7 +25,7 @@ class CameraTest:
 
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)  # Handle window close
 
-    def gstreamer_pipeline(self, capture_width=1280, capture_height=720, framerate=30):
+    def gstreamer_pipeline(self, capture_width=1920, capture_height=1080, framerate=30):
         return (
             f"v4l2src device=/dev/video0 ! "
             f"image/jpeg, width={capture_width}, height={capture_height}, framerate={framerate}/1 ! "
@@ -70,7 +70,7 @@ class CameraTest:
                     return
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert to RGB for PIL
                 img = Image.fromarray(frame)
-                img = img.resize((640, 480), Image.LANCZOS)  # Resize for display
+                img = img.resize((1920, 1080), Image.LANCZOS)  # Resize for display
                 img_tk = ImageTk.PhotoImage(image=img)
                 self.video_frame.config(image=img_tk)
                 self.video_frame.image = img_tk  # Keep a reference!
