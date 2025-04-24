@@ -107,7 +107,7 @@ class MainWindow:
             )
 
             # Show current emotion above progress bar
-            current_emotion = self.emotion_controller.get_current_emotion()
+            current_emotion = self.emotion_controller.get_target_emotion()
             cv2.putText(
                 frame,
                 f"La prochaine musique sera {current_emotion}",
