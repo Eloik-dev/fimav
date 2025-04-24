@@ -81,7 +81,7 @@ class FaceEmotionDetector:
     def get_instance(cls):
         """Return the singleton, or raise if not yet created."""
         if cls._instance is None or not getattr(cls._instance, "_initialized", False):
-            raise RuntimeError("VideoCapture has not been initialized")
+            raise RuntimeError("FaceEmotionDetector has not been initialized")
         return cls._instance
 
     def start_processing(self):
