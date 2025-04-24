@@ -3,7 +3,6 @@ from tkinter import Canvas, Label
 from tkinter import ttk
 from PIL import Image, ImageTk
 import cv2
-import time
 from fimav.processing.emotion_state_controller import EmotionStateController
 
 
@@ -44,7 +43,7 @@ class MainWindow(tk.Tk):
         self.smooth_factor = 0.8
 
         # Set interval based on desired FPS
-        self.interval = 1 / 30
+        self.interval = round((1 / 30) * 1000)
 
         # Start update loop
         self.update_frame()
@@ -74,8 +73,8 @@ class MainWindow(tk.Tk):
     def update_frame(self):
         frame = self.video_capture.get_latest_frame()
         if frame is None:
-            time.sleep(self.interval)
-            return self.update_frame()
+            self.after(self.interval, self.update_frame)
+            return
 
         frame = cv2.resize(frame, (self.width, self.height))
 
@@ -116,5 +115,4 @@ class MainWindow(tk.Tk):
             self.emotion_controller.get_emotion_progress() if target_emotion else 0
         )
 
-        time.sleep(self.interval)
-        self.update_frame()
+        self.after(self.interval, self.update_frame)
