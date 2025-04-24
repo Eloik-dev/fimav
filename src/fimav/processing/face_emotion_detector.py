@@ -115,6 +115,8 @@ class FaceEmotionDetector:
         delay = 1.0 / 20.0  # 20 fps
 
         while not self._stop_face_thread.is_set():
+            time.sleep(delay)
+            
             frame = self.video_capture.get_latest_frame()
             if frame is not None:
                 image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -123,22 +125,21 @@ class FaceEmotionDetector:
                 self.shared_resized_frame = resized_image
                 self.latest_detection = self._detect_faces()
 
-            time.sleep(delay)
 
     def _emotion_processing_loop(self):
         print("Emotion classification thread started")
         delay = 1.0 / 5.0  # 5 fps
         
         while not self._stop_emotion_thread.is_set():
+            time.sleep(delay)
+            
             if len(self.latest_detection) > 1:
                 self.emotion_controller.update_emotion(0)
-                time.sleep(delay)
                 continue
             
             frame = self.shared_resized_frame
             if frame is not None:
                 self.emotion_controller.update_emotion(self._classify_emotion(frame))
-            time.sleep(delay)
 
     def _detect_faces(self):
         if self.shared_resized_frame is None:
