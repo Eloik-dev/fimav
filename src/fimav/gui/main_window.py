@@ -41,6 +41,8 @@ class MainWindow:
         if not self.is_running:
             self.is_running = True
             self.video_capture.start_capture()
+            self.detector.start_processing()
+            
             self.thread = threading.Thread(target=self._update_frame, daemon=True)
             self.thread.start()
 
