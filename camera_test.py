@@ -25,7 +25,7 @@ class CameraTest:
 
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)  # Handle window close
 
-    def gstreamer_pipeline(capture_width=1280, capture_height=720, framerate=30):
+    def gstreamer_pipeline(self, capture_width=1280, capture_height=720, framerate=30):
         return (
             f"v4l2src device=/dev/video0 ! "
             f"image/jpeg, width={capture_width}, height={capture_height}, framerate={framerate}/1 ! "
@@ -38,7 +38,7 @@ class CameraTest:
     def start_stream(self):
         """Starts the video stream in a separate thread using GStreamer."""
         if not self.is_running:
-            pipeline = gstreamer_pipeline()
+            pipeline = self.gstreamer_pipeline()
             self.cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
             if not self.cap.isOpened():
                 print("Error: Could not open GStreamer pipeline.")
