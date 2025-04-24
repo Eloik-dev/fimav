@@ -128,7 +128,7 @@ class MainWindow:
             if current_emotion is None or current_emotion == 0:
                 text_image = self.no_emotion_text_image
             else:
-                text_image = self.emotions_with_fonts[current_emotion]
+                text_image = self.emotions_with_fonts[current_emotion - 1]
 
             h, w, _ = text_image.shape
             x = bar_x + int((bar_width - w) / 2)
