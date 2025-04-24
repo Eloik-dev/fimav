@@ -47,7 +47,7 @@ class MainWindow:
         while self.is_running:
             try:
                 frame = self.video_capture.get_latest_frame()
-                if not frame:
+                if frame is None:
                     print("Error: Failed to read frame. Skipping.")
                     continue
                     
