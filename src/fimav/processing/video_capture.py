@@ -77,6 +77,9 @@ class VideoCapture:
                 self.running = False
                 break
             self._latest_frame = frame
+            
+    def is_running(self):
+        return self.running
 
     def get_latest_frame(self):
         """
