@@ -5,7 +5,7 @@ import time
 
 
 class MainWindow:
-    def __init__(root, self, video_capture, detector, face_size, width, height):
+    def __init__(self, root, video_capture, detector, face_size, width, height):
         self.root = root
         self.root.title("Video Feed")
         self.video_capture = video_capture
