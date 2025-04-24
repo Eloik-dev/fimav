@@ -130,7 +130,7 @@ class MainWindow:
             else:
                 text_image = self.emotions_with_fonts[current_emotion]
 
-            h, w, _ = text_image
+            h, w, _ = text_image.shape
             x = bar_x + int((bar_width - w) / 2)
             y = bar_y - 40
             frame[y : y + h, x : x + w] = text_image
