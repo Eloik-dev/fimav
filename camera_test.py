@@ -17,13 +17,18 @@ class CameraTest:
         self.root = root
         self.root.title("Camera Stream")
         self.camera_index = camera_index
-        self.cap = None  # Initialize capture object
-        self.video_frame = tk.Label(root)
-        self.video_frame.pack()
+        self.cap = None
         self.is_running = False
         self.thread = None
 
-        self.root.protocol("WM_DELETE_WINDOW", self.on_close)  # Handle window close
+        self.label = tk.Label(root, text="Live Stream - Logitech C920", font=("Helvetica", 16))
+        self.label.pack(pady=10)
+
+        self.video_frame = tk.Label(root)
+        self.video_frame.pack()
+
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+
 
     def gstreamer_pipeline(self, capture_width=1920, capture_height=1080, framerate=30):
         return (
