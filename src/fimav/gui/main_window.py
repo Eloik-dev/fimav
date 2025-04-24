@@ -42,7 +42,7 @@ class MainWindow:
             self.is_running = True
             self.video_capture.start_capture()
             self.detector.start_processing()
-            
+
             self.thread = threading.Thread(target=self._update_frame, daemon=True)
             self.thread.start()
 
@@ -71,7 +71,6 @@ class MainWindow:
             # Draw boxes
             for x, y, w, h in scaled_boxes:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
 
             # Draw the overlay text on the frame
             cv2.putText(
@@ -121,8 +120,7 @@ class MainWindow:
 
             # Convert BGR to RGB for PIL
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            img = Image.fromarray(frame_rgb)
-            img = img.resize((self.width, self.height), Image.LANCZOS)
+            img = Image.frombuffer("RGB", (frame.shape[1], frame.shape[0]), frame_rgb, "raw", "BGR", 0, 1)
             img_tk = ImageTk.PhotoImage(image=img)
 
             # Update Canvas image item
@@ -134,7 +132,6 @@ class MainWindow:
             time.sleep(self.interval)
 
     def _scale_boxes(self, raw_boxes):
-        
         scale_x = self.width / self.face_size[0]
         scale_y = self.height / self.face_size[1]
         scaled_boxes = []
