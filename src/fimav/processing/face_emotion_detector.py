@@ -65,11 +65,11 @@ class FaceEmotionDetector:
         self._stop_face_thread.clear()
         self._stop_emotion_thread.clear()
 
-        self.face_thread = threading.Thread(target=self._face_processing_loop)
-        self.emotion_thread = threading.Thread(target=self._emotion_processing_loop)
+        # self.face_thread = threading.Thread(target=self._face_processing_loop)
+        # self.emotion_thread = threading.Thread(target=self._emotion_processing_loop)
 
-        self.face_thread.start()
-        self.emotion_thread.start()
+        # self.face_thread.start()
+        # self.emotion_thread.start()
 
     def stop_processing(self):
         self.running = False
@@ -83,7 +83,7 @@ class FaceEmotionDetector:
 
     def _face_processing_loop(self):
         print("Face detection thread started")
-        FPS = 30
+        FPS = 20
         interval = 1.0 / FPS
 
         while not self._stop_face_thread.is_set():
