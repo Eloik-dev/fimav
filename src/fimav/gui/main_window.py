@@ -4,10 +4,10 @@ import cv2
 import time
 
 
-class MainWindow():
+class MainWindow:
     def __init__(root, self, video_capture, detector, face_size, width, height):
         self.root = root
-        self.title("Video Feed")
+        self.root.title("Video Feed")
         self.video_capture = video_capture
         self.width = width
         self.height = height
@@ -17,7 +17,6 @@ class MainWindow():
         self.video_frame = tk.Label(self)
         self.video_frame.pack()
 
-        self.photo = None
         self.interval = round((1 / 30) * 1000)
 
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -27,8 +26,9 @@ class MainWindow():
             try:
                 frame = self.video_capture.get_latest_frame()
                 if frame is None:
-                    self.after(self.interval, self.update_frame)
-                    return
+                    print("Error: Failed to read frame.  Retrying...")
+                    time.sleep(0.1)
+                    continue
 
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert to RGB for PIL
                 img = Image.fromarray(frame)
