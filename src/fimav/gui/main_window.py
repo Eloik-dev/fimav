@@ -35,19 +35,20 @@ class MainWindow:
         self.is_running = False
         self.thread = None
 
+        font_size = 26
         self.no_emotion_text_image = self.render_text_image(
-            "Contrôlez l'orchestre avec vos émotions !", "Arial", 20
+            "Contrôlez l'orchestre avec vos émotions !", "Arial", font_size
         )
 
         base_emotion_text = "La prochaine musique sera "
         self.emotions_with_fonts = [
-            self.render_text_image(base_emotion_text + "heureuse", "Arial", 20),
-            self.render_text_image(base_emotion_text + "surprenante", "Arial", 20),
-            self.render_text_image(base_emotion_text + "triste", "Arial", 20),
-            self.render_text_image(base_emotion_text + "enrageante", "Arial", 20),
-            self.render_text_image(base_emotion_text + "dégoutante", "Arial", 20),
-            self.render_text_image(base_emotion_text + "apeurante", "Arial", 20),
-            self.render_text_image(base_emotion_text + "méprisante", "Arial", 20),
+            self.render_text_image(base_emotion_text + "heureuse", "Arial", font_size),
+            self.render_text_image(base_emotion_text + "surprenante", "Arial", font_size),
+            self.render_text_image(base_emotion_text + "triste", "Arial", font_size),
+            self.render_text_image(base_emotion_text + "enrageante", "Arial", font_size),
+            self.render_text_image(base_emotion_text + "dégoutante", "Arial", font_size),
+            self.render_text_image(base_emotion_text + "apeurante", "Arial", font_size),
+            self.render_text_image(base_emotion_text + "méprisante", "Arial", font_size),
         ]
 
         # Ensure clean shutdown
