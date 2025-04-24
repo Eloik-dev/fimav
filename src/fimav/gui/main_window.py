@@ -135,7 +135,7 @@ class MainWindow:
             # Check if more than one person is detected
             if len(scaled_boxes) > 1:
                 text_image = self.render_text_image(
-                    f"{scaled_boxes.len} visages sont détectés !\nVeuillez être seul(e) devant la caméra.",
+                    f"{len(scaled_boxes)} visages sont détectés !\nVeuillez être seul(e) devant la caméra.",
                     "Arial",
                     32,
                 )
