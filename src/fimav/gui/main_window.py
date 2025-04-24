@@ -19,7 +19,7 @@ class MainWindow:
         self.video_frame = tk.Label(root)
         self.video_frame.pack()
 
-        self.interval = 1 / 30
+        self.interval = 1 / 60
         self.is_running = False
         self.thread = None
 
