@@ -1,11 +1,12 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 import cv2
+import time
 
 
-class MainWindow(tk.Tk):
-    def __init__(self, video_capture, detector, face_size, width, height):
-        super().__init__()
+class MainWindow():
+    def __init__(root, self, video_capture, detector, face_size, width, height):
+        self.root = root
         self.title("Video Feed")
         self.video_capture = video_capture
         self.width = width
@@ -19,20 +20,29 @@ class MainWindow(tk.Tk):
         self.photo = None
         self.interval = round((1 / 30) * 1000)
 
-        self.update_frame()
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def update_frame(self):
-        frame = self.video_capture.get_latest_frame()
-        if frame is None:
-            self.after(self.interval, self.update_frame)
-            return
+        while self.video_capture.is_running():
+            try:
+                frame = self.video_capture.get_latest_frame()
+                if frame is None:
+                    self.after(self.interval, self.update_frame)
+                    return
 
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert to RGB for PIL
-        img = Image.fromarray(frame)
-        img = img.resize((1920, 1080), Image.LANCZOS)  # Resize for display
-        img_tk = ImageTk.PhotoImage(image=img)
-        self.video_frame.config(image=img_tk)
-        self.video_frame.image = img_tk  # Keep a reference!
-
-        self.after(self.interval, self.update_frame)
-
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Convert to RGB for PIL
+                img = Image.fromarray(frame)
+                img = img.resize((1920, 1080), Image.LANCZOS)  # Resize for display
+                img_tk = ImageTk.PhotoImage(image=img)
+                self.video_frame.config(image=img_tk)
+                self.video_frame.image = img_tk  # Keep a reference!
+            except Exception as e:
+                print(f"Error in update_frame: {e}")
+                self.on_close()  # stop stream on error
+                return
+            time.sleep(0.01)  # Add a small delay
+        
+    def on_close(self):
+        """Handles window close event."""
+        self.video_capture.stop()  # Stop the stream before exiting
+        self.root.destroy()

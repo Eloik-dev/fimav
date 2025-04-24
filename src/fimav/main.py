@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+import tkinter as Tk
 from fimav import __version__
 from fimav.processing.video_capture import VideoCapture
 from fimav.processing.face_emotion_detector import FaceEmotionDetector
@@ -100,7 +101,9 @@ def create_gui_thread(video_capture, detector, face_size, width, height):
     :returns: the Thread object running the GUI
     """
     # Instantiate and run the Tkinter MainWindow
-    window = MainWindow(video_capture, detector, face_size, width, height)
+    root = Tk.tk()
+    window = MainWindow(root, video_capture, detector, face_size, width, height)
+    window.update_frame()
     window.mainloop()
     detector.stop_processing()
     print("GUI thread finished")
