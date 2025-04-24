@@ -3,6 +3,7 @@ from tkinter import Canvas, Label
 from tkinter import ttk
 from PIL import Image, ImageTk
 import cv2
+import time
 from fimav.processing.emotion_state_controller import EmotionStateController
 
 
@@ -43,10 +44,10 @@ class MainWindow(tk.Tk):
         self.smooth_factor = 0.8
 
         # Set interval based on desired FPS
-        self.interval = round((1 / 30) * 1000)
+        self.interval = round(1 / 30)
 
         # Start update loop
-        self.after(self.interval, self.update_frame)
+        self.update_frame()
 
     def lerp_box(self, box1, box2, t):
         return [
@@ -73,8 +74,8 @@ class MainWindow(tk.Tk):
     def update_frame(self):
         frame = self.video_capture.get_latest_frame()
         if frame is None:
-            self.after(self.interval, self.update_frame)
-            return
+            time.sleep(self.interval)
+            return self.update_frame()
 
         frame = cv2.resize(frame, (self.width, self.height))
 
@@ -115,4 +116,5 @@ class MainWindow(tk.Tk):
             self.emotion_controller.get_emotion_progress() if target_emotion else 0
         )
 
-        self.after(self.interval, self.update_frame)
+        time.sleep(self.interval)
+        self.update_frame()
