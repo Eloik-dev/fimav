@@ -9,7 +9,7 @@ import cv2
 class VideoCapture:
     _instance = None
 
-    def __new__(cls, __camera_index__, __camera_width__, __camera_height__):
+    def __new__(cls, __camera_index__=0, __camera_width__=1920, __camera_height__=1080):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
