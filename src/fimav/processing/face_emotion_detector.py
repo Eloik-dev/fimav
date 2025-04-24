@@ -183,7 +183,7 @@ class FaceEmotionDetector:
         _, out = ex.extract("out0")
         scores = np.array(out)
         probs = self.softmax(scores)
-        probs[self.emotion_labels.index("triste")] *= 10
+        probs[self.emotion_labels.index("triste")] *= 8
         idx = int(np.argmax(probs))
         return self.emotion_labels[idx]
 
