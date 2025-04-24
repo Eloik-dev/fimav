@@ -112,7 +112,7 @@ class FaceEmotionDetector:
 
     def _face_processing_loop(self):
         print("Face detection thread started")
-        FPS = 20
+        FPS = 30
         interval = 1.0 / FPS
 
         while not self._stop_face_thread.is_set():
