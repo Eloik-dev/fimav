@@ -6,7 +6,9 @@ import time
 from fimav.processing.emotion_state_controller import EmotionStateController
 from fimav.processing.video_capture import VideoCapture
 
-
+"""
+    Classe pour la détection et la classification des expressions faciales
+"""
 class FaceEmotionDetector:
     _instance = None
 
@@ -45,19 +47,19 @@ class FaceEmotionDetector:
         self.face_size = face_size
         self.emo_size = emo_size
 
-        # Shared state
+        # États partagés entre les threads
         self.latest_detection = []
         self.emotion_controller = EmotionStateController.get_instance()
         self.shared_resized_frame = None
 
-        # Threads
+        # Contrôleurs de threads
         self.running = False
         self.face_thread = None
         self.emotion_thread = None
         self._stop_face_thread = threading.Event()
         self._stop_emotion_thread = threading.Event()
 
-        # Load models
+        # Chargement des modèles d'IA
         self.face_net = ncnn.Net()
         self.face_net.load_param(face_param)
         self.face_net.load_model(face_bin)
@@ -66,7 +68,7 @@ class FaceEmotionDetector:
         self.emo_net.load_param(emo_param)
         self.emo_net.load_model(emo_bin)
 
-        # Emotion info
+        # Libellés des émotions
         self.emotion_labels = [
             "neutre",
             "heureuse",
@@ -199,21 +201,18 @@ class FaceEmotionDetector:
         e_x = np.exp(x - np.max(x))
         return e_x / e_x.sum(axis=0)
 
+    # Converti les coordonnées de sortie en coordonnées ajustées aux dimensions de l'image
     def decode_boxes(self, scores, boxes, score_threshold=0.7, iou_threshold=0.2):
-        """
-        Convert raw outputs into actual (x, y, w, h) bounding boxes.
-        """
-        # Convert NCNN mats to numpy arrays
         scores_np = np.array(scores)  # shape: (4420, 2)
         boxes_np = np.array(boxes)  # shape: (4420, 4)
 
-        # Select boxes with confidence > threshold
+        # Filtrer les boîtes qui correspondent pas à un visage
         face_scores = scores_np[:, 1]
         mask = face_scores > score_threshold
         filtered_scores = face_scores[mask]
         filtered_boxes = boxes_np[mask]
 
-        # Scale boxes to absolute image size
+        # Convertir les coordonnées de sortie en coordonnées ajustées aux dimensions de l'image
         w, h = self.face_size
         boxes_abs = filtered_boxes
         boxes_abs[:, 0] *= w
@@ -221,7 +220,7 @@ class FaceEmotionDetector:
         boxes_abs[:, 2] *= w
         boxes_abs[:, 3] *= h
 
-        # Apply NMS
+        # Appliquer le NMS
         indices = cv2.dnn.NMSBoxes(
             bboxes=boxes_abs.tolist(),
             scores=filtered_scores.tolist(),

@@ -1,6 +1,6 @@
 import cv2
 
-# Global OpenCV optimizations
+# Optimisations OpenCV optionnelles
 # cv2.setNumThreads(0)  # Disable OpenCV's internal threading
 # cv2.ocl.setUseOpenCL(False)  # Disable OpenCL (optional, depends on platform)
 # print(cv2.getBuildInformation())
@@ -65,9 +65,6 @@ class VideoCapture:
         return True
 
     def stop_capture(self):
-        """
-        Stops the video capture process and releases resources.
-        """
         if self.cap and self.cap.isOpened():
             self.cap.release()
             self.cap = None
@@ -82,7 +79,4 @@ class VideoCapture:
         return frame
 
     def get_latest_frame(self):
-        """
-        Retrieves the latest captured frame atomically.
-        """
         return self._latest_frame

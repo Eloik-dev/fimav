@@ -2,7 +2,9 @@ from mido import MidiFile
 import threading
 import os
 
-
+"""
+    Classe pour jouer des fichiers MIDI sur le broker MQTT
+"""
 class MidiController:
     def __init__(self, mqtt_manager):
         self.mqtt_manager = mqtt_manager
@@ -16,12 +18,12 @@ class MidiController:
             raise FileNotFoundError(f"File not found: {file_path}")
 
         with self.lock:
-            # Stop current thread if it's playing
+            # Arrêter la lecture si elle est en cours
             self._stop_event.set()
             if self.midi_thread and self.midi_thread.is_alive():
                 self.midi_thread.join()
 
-            # Clear stop flag and start new playback
+            # Lancer ou relancer la lecture
             self._stop_event.clear()
             self.midi_thread = threading.Thread(
                 target=self._play_midi_file, args=(file_path,), daemon=True

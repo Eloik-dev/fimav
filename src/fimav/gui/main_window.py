@@ -9,13 +9,15 @@ from fimav.processing.video_capture import VideoCapture
 from fimav.processing.face_emotion_detector import FaceEmotionDetector
 from fimav.processing.emotion_state_controller import EmotionStateController
 
-
+"""
+    Classe pour l'interface graphique
+"""
 class MainWindow:
     def __init__(self, root, face_size, width, height):
         self.root = root
         self.root.title("Video Feed with Progress Bar Overlay")
 
-        # Video capture setup
+        # Video capture
         self.video_capture = VideoCapture.get_instance()
         self.detector = FaceEmotionDetector.get_instance()
         self.emotion_controller = EmotionStateController.get_instance()
@@ -23,14 +25,14 @@ class MainWindow:
         self.height = height
         self.face_size = face_size
 
-        # Create a Canvas to hold the video frame
+        # Canvas
         self.canvas = tk.Canvas(root, width=self.width, height=self.height)
         self.canvas.pack()
 
-        # Create image item (initially empty)
+        # Initialisation d'un placeholder pour l'image
         self.canvas_img = self.canvas.create_image(0, 0, anchor="nw", image=None)
 
-        # Streaming control
+        # Vitesse de rafraichissement
         self.interval = 1 / 30
         self.is_running = False
         self.thread = None
@@ -94,11 +96,11 @@ class MainWindow:
             raw_boxes = self.detector.get_latest_detection() or []
             scaled_boxes = self._scale_boxes(raw_boxes)
 
-            # Draw boxes
+            # Dessiner les boîtes autour des visages
             for x, y, w, h in scaled_boxes:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-            # Check if more than one person is detected
+            # Vérifier si plusieurs visages sont détectés
             if len(scaled_boxes) > 1:
                 text_image = self.render_text_image(
                     f"{len(scaled_boxes)} visages sont détectés !\nVeuillez être seul(e) devant la caméra.",
@@ -110,7 +112,7 @@ class MainWindow:
                 x = int((self.width - w) / 2)
                 y = int((self.height - h) / 2)
             else:
-                # Draw progress bar at bottom middle
+                # Dessiner la barre de progression
                 bar_width = int(self.width * 0.6)
                 bar_height = 20
                 bar_x = int((self.width - bar_width) / 2)
@@ -119,7 +121,7 @@ class MainWindow:
                     bar_width * self.emotion_controller.get_emotion_progress()
                 )
 
-                # Background bar (dark grey)
+                # Background de la barre de progression (gris)
                 cv2.rectangle(
                     frame,
                     (bar_x, bar_y),
@@ -127,7 +129,7 @@ class MainWindow:
                     (50, 50, 50),
                     cv2.FILLED,
                 )
-                # Filled portion (green)
+                # Intérieur de la barre de progression (green)
                 cv2.rectangle(
                     frame,
                     (bar_x, bar_y),
@@ -135,7 +137,7 @@ class MainWindow:
                     (0, 255, 0),
                     cv2.FILLED,
                 )
-                # Border (white)
+                # Bordure de la barre de progression (white)
                 cv2.rectangle(
                     frame,
                     (bar_x, bar_y),
@@ -144,7 +146,7 @@ class MainWindow:
                     2,
                 )
 
-                # Show current emotion above progress bar
+                # Afficher l'émotion au dessus de la barre de progression
                 current_emotion = self.emotion_controller.get_target_emotion()
                 if current_emotion is None or current_emotion == 0:
                     text_image = self.no_emotion_text_image
@@ -157,32 +159,29 @@ class MainWindow:
 
             frame[y : y + h, x : x + w] = text_image
 
-            # Convert BGR to RGB for PIL
+            # Convertir BGR en RGB pour le PIL
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(frame_rgb)
             img_tk = ImageTk.PhotoImage(image=img)
 
-            # Update Canvas image item
+            # Mettre à jour l'image
             self.canvas.itemconfig(self.canvas_img, image=img_tk)
-            # Keep reference to avoid garbage collection
             self.canvas.image = img_tk
 
-            # Throttle loop
             time.sleep(self.interval)
 
     def render_text_image(self, text, font_path="Arial", font_size=32):
         font = ImageFont.truetype(f"fonts/{font_path}.ttf", font_size)
 
-        # Dummy image to get drawing context
         dummy_img = Image.new("RGB", (1, 1))
         draw = ImageDraw.Draw(dummy_img)
 
-        # Get tight bounding box
+        # Calculer la taille du texte
         bbox = draw.textbbox((0, 0), text, font=font)
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
 
-        # Add a bit of vertical padding (5–10 pixels is usually enough)
+        # Ajout d'un léger padding vertical (ajustement à l'oeil)
         padding = 10
         img = Image.new("RGB", (text_width, text_height + padding), (0, 0, 0))
         draw = ImageDraw.Draw(img)

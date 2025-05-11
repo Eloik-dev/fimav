@@ -1,7 +1,9 @@
 import time
 import random
 
-
+"""
+    Classe pour la gestion de l'emotion de l'orchestre
+"""
 class EmotionStateController:
     _instance = None
     DELAY = 1.5
@@ -41,25 +43,25 @@ class EmotionStateController:
         return cls._instance
 
     def update_emotion(self, emotion_idx: int):
-        # reset on neutral
+        # Ne rien faire si l'émotion est neutre
         if emotion_idx == 0:
             self.target_emotion = None
             self.emotion_start_time = None
             return
 
-        # ignore same as current song
+        # Ignorer si la même émotion est en cours
         if self.midi.is_playing() and emotion_idx == self.last_emotion:
             return
 
         now = time.time()
 
-        # new hold cycle
+        # Changer d'émotion si elle est différente
         if emotion_idx != self.target_emotion:
             self.target_emotion = emotion_idx
             self.emotion_start_time = now
             return
 
-        # held long enough?
+        # Changer de musique si le temps est suffisant
         if now - (self.emotion_start_time or now) >= self.DELAY:
             self._trigger_song(emotion_idx)
             self.target_emotion = None
