@@ -44,7 +44,7 @@ class MidiController:
                 if message.type in ('note_on', 'note_off'):
                     payload = {
                         'event': 0 if message.type == 'note_on' else 1,
-                        'channel': message.channel + 1,
+                        'channel': message.channel,
                         'note': message.note,
                         'velocity': message.velocity
                     }
