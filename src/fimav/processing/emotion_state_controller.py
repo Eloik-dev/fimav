@@ -7,15 +7,42 @@ import random
 class EmotionStateController:
     _instance = None
     DELAY = 1.5
+    
+    # Modifier avec des musiques neutres
+    neutral_songs = [
+        "neutre_boucle_1.mid",
+        "neutre_boucle_2.mid",
+    ]
 
     # Modifier avec des musiques joyeuses
-    happy_songs = [
-        "Test.mid",
+    # happy_songs = [
+    #     "aventureux.mid",
+    #     "intrigant.mid",
+    #     "joyeux__la_penta_majeur_1.mid",
+    #     "jungle.mid",
+    # ]
+    happy_songs = ["Test.mid"]
+    
+    # Modifier avec des musiques surprenantes
+    surprised_songs = [
+        "alarmant_v2.mid",
     ]
 
     # Modifier avec des musiques tristes
     sad_songs = [
-        "Test.mid",
+        "hypnotique_v2.mid",
+    ]
+
+    # Libellés des émotions
+    emotion_labels = [
+        "neutre",
+        "heureuse",
+        "surprenante",
+        "triste",
+        "enrageante",
+        "dégoutante",
+        "apeurante",
+        "méprisante",
     ]
 
     def __new__(cls, __midi_controller__=None):
@@ -33,6 +60,7 @@ class EmotionStateController:
         self.emotion_start_time = None
         self.last_emotion = None
         self.target_emotion = None
+        self.current_neutral_song = None
         self._initialized = True
 
     @classmethod
@@ -43,10 +71,17 @@ class EmotionStateController:
         return cls._instance
 
     def update_emotion(self, emotion_idx: int):
+        # Remettre la dernière émotion en cours à null si elle est terminée
+        if self.last_emotion is not None and not self.midi.is_playing(): 
+            self.last_emotion = None 
+        
         # Ne rien faire si l'émotion est neutre
         if emotion_idx == 0:
             self.target_emotion = None
             self.emotion_start_time = None
+            if self.current_neutral_song is None:
+                self.current_neutral_song = random.choice(self.neutral_songs)
+                self.midi.play_midi_file(self.current_neutral_song)
             return
 
         # Ignorer si la même émotion est en cours
@@ -67,11 +102,19 @@ class EmotionStateController:
             self.target_emotion = None
             self.emotion_start_time = None
 
-    def reset_last_emotion(self):
-        self.last_emotion = None
-
     def get_target_emotion(self) -> int:
         return self.target_emotion
+    
+    def get_last_emotion(self) -> int:
+        return self.last_emotion
+    
+    def get_last_emotion_string(self) -> str:
+        if self.last_emotion is None:
+            return self.emotion_labels[0]
+        return self.emotion_labels[self.last_emotion]
+    
+    def get_emotion_labels(self) -> list:
+        return self.emotion_labels
 
     def get_emotion_progress(self) -> float:
         if not self.target_emotion or not self.emotion_start_time:
@@ -88,3 +131,4 @@ class EmotionStateController:
             return
         self.midi.play_midi_file(midi)
         self.last_emotion = emotion_idx
+

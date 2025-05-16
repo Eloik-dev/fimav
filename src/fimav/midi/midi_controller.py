@@ -1,6 +1,7 @@
 from mido import MidiFile
 import threading
 import os
+import json
 
 """
     Classe pour jouer des fichiers MIDI sur le broker MQTT
@@ -26,7 +27,7 @@ class MidiController:
             # Lancer ou relancer la lecture
             self._stop_event.clear()
             self.midi_thread = threading.Thread(
-                target=self._play_midi_file, args=(file_path,), daemon=True
+                target=self._play_midi_file, args=(file_path,)
             )
             self.midi_thread.start()
 
@@ -38,7 +39,24 @@ class MidiController:
                 if self._stop_event.is_set():
                     print("Playback interrupted.")
                     break
-                self.mqtt_manager.send_midi(message)
+
+                # Build custom payload
+                if message.type in ('note_on', 'note_off'):
+                    payload = {
+                        'event': 0 if message.type == 'note_on' else 1,
+                        'channel': message.channel + 1,
+                        'note': message.note,
+                        'velocity': message.velocity
+                    }
+                    topic = 'orchestre'
+                    
+                    print(f"Envoi de la note: {payload}")
+                    
+                    # Send JSON string to MQTT
+                    self.mqtt_manager.send_midi(json.dumps(payload))
+                else:
+                    # Optionally handle other message types or ignore
+                    continue
         finally:
             print("Playback finished or stopped.")
 

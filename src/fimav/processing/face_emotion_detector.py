@@ -67,19 +67,7 @@ class FaceEmotionDetector:
         self.emo_net = ncnn.Net()
         self.emo_net.load_param(emo_param)
         self.emo_net.load_model(emo_bin)
-
-        # Libellés des émotions
-        self.emotion_labels = [
-            "neutre",
-            "heureuse",
-            "surprenante",
-            "triste",
-            "enrageante",
-            "dégoutante",
-            "apeurante",
-            "méprisante",
-        ]
-
+        
         self._initialized = True
 
     @classmethod
@@ -193,8 +181,9 @@ class FaceEmotionDetector:
 
         _, out = ex.extract("out0")
         scores = np.array(out)
+        emotion_labels = self.emotion_controller.get_emotion_labels()
         probs = self.softmax(scores)
-        probs[self.emotion_labels.index("triste")] *= 10
+        probs[emotion_labels.index("triste")] *= 5
         return int(np.argmax(probs))
 
     def softmax(self, x):

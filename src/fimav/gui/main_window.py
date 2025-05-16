@@ -145,13 +145,24 @@ class MainWindow:
                     (255, 255, 255),
                     2,
                 )
+                
+                # Afficher l'émotion courant au haut de l'écran
+                current_emotion = self.emotion_controller.get_last_emotion()
+                if current_emotion is not None and current_emotion != 0:
+                    current_emotion_text = f"Une musique {self.emotion_controller.get_last_emotion_string()} joue présentement"
+                    current_emotion_text_image = self.render_text_image(current_emotion_text, "Arial", 32)
+
+                    h, w, _ = current_emotion_text_image.shape
+                    x = int((self.width - w) / 2)
+                    y = 20
+                    frame[y : y + h, x : x + w] = current_emotion_text_image
 
                 # Afficher l'émotion au dessus de la barre de progression
-                current_emotion = self.emotion_controller.get_target_emotion()
-                if current_emotion is None or current_emotion == 0:
+                next_emotion = self.emotion_controller.get_target_emotion()
+                if next_emotion is None or next_emotion == 0:
                     text_image = self.no_emotion_text_image
                 else:
-                    text_image = self.emotions_with_fonts[current_emotion - 1]
+                    text_image = self.emotions_with_fonts[next_emotion - 1]
 
                 h, w, _ = text_image.shape
                 x = bar_x + int((bar_width - w) / 2)
@@ -207,3 +218,5 @@ class MainWindow:
         """Handles window close event by stopping capture and closing."""
         self.stop()
         self.root.destroy()
+
+
