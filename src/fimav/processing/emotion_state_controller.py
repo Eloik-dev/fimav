@@ -15,13 +15,13 @@ class EmotionStateController:
     ]
 
     # Modifier avec des musiques joyeuses
-    # happy_songs = [
-    #     "aventureux.mid",
-    #     "intrigant.mid",
-    #     "joyeux__la_penta_majeur_1.mid",
-    #     "jungle.mid",
-    # ]
-    happy_songs = ["Test.mid"]
+    happy_songs = [
+         "aventureux.mid",
+         "intrigant.mid",
+         "joyeux__la_penta_majeur_1.mid",
+         "jungle.mid",
+    ]
+    # happy_songs = ["Test.mid"]
     
     # Modifier avec des musiques surprenantes
     surprised_songs = [
