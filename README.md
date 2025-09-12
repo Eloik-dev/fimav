@@ -1,7 +1,7 @@
 fimav
 =====
 
-    Logiciel Python pour la reconnaissance faciale et la classification d'émotions
+Logiciel Python pour la reconnaissance faciale et la classification d'émotions
 
 ### Préalables
 Installation de GStreamer pour le rendu vidéo : https://gstreamer.freedesktop.org/documentation/installing/index.html?gi-language=c
